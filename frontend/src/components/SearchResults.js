@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardContent,
@@ -6,12 +6,12 @@ import {
   Grid,
   Button,
   Chip,
-  Box
-} from '@mui/material';
-import FlightIcon from '@mui/icons-material/Flight';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import HotelIcon from '@mui/icons-material/Hotel';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+  Box,
+} from "@mui/material";
+import FlightIcon from "@mui/icons-material/Flight";
+import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
+import HotelIcon from "@mui/icons-material/Hotel";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 const SearchResults = ({ type, data }) => {
   const renderTransportation = (item) => (
@@ -19,13 +19,13 @@ const SearchResults = ({ type, data }) => {
       <CardContent>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center">
-            {item.type === 'flight' ? <FlightIcon /> : <DirectionsBusIcon />}
+            {item.type === "flight" ? <FlightIcon /> : <DirectionsBusIcon />}
             <Typography variant="h6" sx={{ ml: 1 }}>
               {item.provider}
             </Typography>
           </Box>
           <Chip
-            label={`$${item.price}`}
+            label={`৳${item.price}`}
             color="success"
             className="price-tag"
           />
@@ -53,7 +53,7 @@ const SearchResults = ({ type, data }) => {
             </Typography>
           </Box>
           <Chip
-            label={`$${hotel.price}/night`}
+            label={`৳${hotel.price}/night`}
             color="success"
             className="price-tag"
           />
@@ -87,11 +87,7 @@ const SearchResults = ({ type, data }) => {
           {place.description}
         </Typography>
         {place.rating && (
-          <Chip
-            label={`${place.rating} ★`}
-            size="small"
-            sx={{ mt: 1 }}
-          />
+          <Chip label={`${place.rating} ★`} size="small" sx={{ mt: 1 }} />
         )}
       </CardContent>
     </Card>
@@ -101,9 +97,9 @@ const SearchResults = ({ type, data }) => {
     <Grid container spacing={2}>
       {data.map((item, index) => (
         <Grid item xs={12} sm={6} md={4} key={index}>
-          {type === 'transportation' && renderTransportation(item)}
-          {type === 'hotels' && renderHotel(item)}
-          {type === 'places' && renderTouristPlace(item)}
+          {type === "transportation" && renderTransportation(item)}
+          {type === "hotels" && renderHotel(item)}
+          {type === "places" && renderTouristPlace(item)}
         </Grid>
       ))}
     </Grid>

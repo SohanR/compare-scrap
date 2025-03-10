@@ -1,6 +1,7 @@
 const { scrapeBookingDotCom } = require("./booking");
 const { scrapeAgodaHotels } = require("./agoda");
 const { scrapeMakeMyTripHotels } = require("./makemytrip");
+const { scrapeTripAdvisorPlaces } = require("./tripadvisor");
 
 async function scrapeHotels(location, checkInDate, checkOutDate) {
   console.log(
@@ -43,6 +44,25 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
   }
 }
 
+async function scrapeTouristPlaces(location) {
+  console.log(`Scraping tourist places for ${location}`);
+
+  try {
+    const places = await scrapeTripAdvisorPlaces(location).catch((err) => {
+      console.error("TripAdvisor error:", err.message);
+      return [];
+    });
+
+    console.log(`Found ${places.length} tourist places`);
+    console.log("Tourist Places:", places);
+    return places;
+  } catch (error) {
+    console.error("Tourist places scraping error:", error);
+    return [];
+  }
+}
+
 module.exports = {
   scrapeHotels,
+  scrapeTouristPlaces,
 };

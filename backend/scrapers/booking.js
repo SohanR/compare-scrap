@@ -24,7 +24,7 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
 
     const url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(
       location
-    )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
+    )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0&selected_currency=USD`;
     await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
 
     // Wait for hotels to load
@@ -34,8 +34,6 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
 
     const results = await page.evaluate(() => {
       const items = document.querySelectorAll('[data-testid="property-card"]');
-      console.log("item", items.length, "items", items);
-
       return Array.from(items).map((item) => ({
         name: item.querySelector('[data-testid="title"]')?.innerText?.trim(),
         price: parseFloat(
