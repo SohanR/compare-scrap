@@ -63,28 +63,30 @@ app.post('/api/search', async (req, res) => {
 
     // Fetch all data concurrently
     const [transportation, hotels, touristPlaces] = await Promise.all([
-      getAllTransportation(from, to, date).catch(err => {
-        console.error('Transportation error:', err);
-        return [];
-      }),
-      scrapeHotels(to, date).catch(err => {
+      // getAllTransportation(from, to, date).catch(err => {
+      //   console.error('Transportation error:', err);
+      //   return [];
+      // }),
+      scrapeHotels(to, date, date).catch(err => {
         console.error('Hotels error:', err);
         return [];
       }),
-      scrapeTouristPlaces(to).catch(err => {
-        console.error('Tourist places error:', err);
-        return [];
-      })
+      // scrapeTouristPlaces(to).catch(err => {
+      //   console.error('Tourist places error:', err);
+      //   return [];
+      // })
+      Promise.resolve([]), // Return empty array for transportation
+      Promise.resolve([])  // Return empty array for tourist places
     ]);
 
     console.log(`Found ${hotels?.length || 0} hotels`);
-    console.log(`Found ${transportation?.length || 0} transportation options`);
-    console.log(`Found ${touristPlaces?.length || 0} tourist places`);
+    // console.log(`Found ${transportation?.length || 0} transportation options`);
+    // console.log(`Found ${touristPlaces?.length || 0} tourist places`);
 
     const results = {
-      transportation: transportation || [],
+      transportation: [], // Return empty array for transportation
       hotels: hotels || [],
-      touristPlaces: touristPlaces || []
+      touristPlaces: [] // Return empty array for tourist places
     };
 
     // Cache the results

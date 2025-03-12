@@ -25,11 +25,36 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
     const url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(
       location
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0&selected_currency=USD`;
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
+
+    console.log(`Navigating to URL: ${url}`);
+
+    let navigationSuccessful = false;
+    let attempts = 0;
+    const maxAttempts = 3;
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    while (!navigationSuccessful && attempts < maxAttempts) {
+      try {
+        await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
+        navigationSuccessful = true;
+      } catch (error) {
+        attempts++;
+        console.error(`Navigation attempt ${attempts} failed:`, error.message);
+        if (attempts < maxAttempts) {
+          await delay(5000); // Wait for 5 seconds before retrying
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Log the HTML content of the page
+    const pageContent = await page.content();
+    console.log(`Page content after navigation: ${pageContent.substring(0, 500)}...`);
 
     // Wait for hotels to load
     await page.waitForSelector('[data-testid="property-card"]', {
-      timeout: 10000,
+      timeout: 20000,
     });
 
     const results = await page.evaluate(() => {
