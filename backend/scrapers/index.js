@@ -1,4 +1,4 @@
-const { scrapeBookingDotCom } = require("./booking");
+
 // const { scrapeAgodaHotels } = require("./agoda");
 // const { scrapeMakeMyTripHotels } = require("./makemytrip");
 // const { scrapeTripAdvisorPlaces } = require("./tripadvisor");
@@ -16,6 +16,9 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
     });
 
     let allHotels = [...bookingResults];
+
+    console.log("booking results", bookingResults);
+    
 
     // Remove duplicates based on hotel name
     allHotels = Array.from(
