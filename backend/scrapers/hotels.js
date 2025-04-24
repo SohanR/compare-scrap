@@ -1,8 +1,10 @@
+/*
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 const randomUseragent = require("random-useragent");
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { scrapeFromBookingDotCom } = require("./booking");
 
 puppeteer.use(StealthPlugin());
 
@@ -20,106 +22,6 @@ async function setupBrowser() {
   });
 }
 
-async function scrapeAgodaHotels(location, checkInDate) {
-  try {
-    const url = `https://www.agoda.com/search?city=${encodeURIComponent(
-      location
-    )}&checkIn=${checkInDate}`;
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent": randomUseragent.getRandom(),
-        Accept: "text/html",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
-
-    const $ = cheerio.load(response.data);
-    const hotels = [];
-
-    $(".hotel-card").each((_, element) => {
-      const hotel = {
-        name: $(element).find(".hotel-name").text().trim(),
-        price: parseFloat(
-          $(element)
-            .find(".price")
-            .text()
-            .replace(/[^0-9.]/g, "")
-        ),
-        rating: $(element).find(".rating").text().trim(),
-        location: $(element).find(".location").text().trim(),
-        bookingLink:
-          "https://www.agoda.com" + $(element).find("a").attr("href"),
-        amenities: $(element)
-          .find(".amenities span")
-          .map((_, el) => $(el).text().trim())
-          .get(),
-        imageUrl: $(element).find(".hotel-image img").attr("src"),
-        description: $(element).find(".description").text().trim(),
-      };
-
-      if (hotel.name && hotel.price > 0) {
-        hotels.push(hotel);
-      }
-    });
-
-    console.log("Agoda Hotels:", hotels);
-    return hotels;
-  } catch (error) {
-    console.error("Agoda scraping error:", error.message);
-    return [];
-  }
-}
-
-async function scrapeMakeMyTripHotels(location, checkInDate) {
-  try {
-    const url = `https://www.makemytrip.com/hotels/hotel-listing/?checkin=${checkInDate}&city=${encodeURIComponent(
-      location
-    )}`;
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent": randomUseragent.getRandom(),
-        Accept: "text/html",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
-
-    const $ = cheerio.load(response.data);
-    const hotels = [];
-
-    $(".hotelCardListing").each((_, element) => {
-      const hotel = {
-        name: $(element).find(".hotelName").text().trim(),
-        price: parseFloat(
-          $(element)
-            .find(".price")
-            .text()
-            .replace(/[^0-9.]/g, "")
-        ),
-        rating: $(element).find(".rating").text().trim(),
-        location: $(element).find(".areaName").text().trim(),
-        bookingLink:
-          "https://www.makemytrip.com" + $(element).find("a").attr("href"),
-        amenities: $(element)
-          .find(".amenityList span")
-          .map((_, el) => $(el).text().trim())
-          .get(),
-        imageUrl: $(element).find(".hotelImage img").attr("src"),
-        description: $(element).find(".hotelDesc").text().trim(),
-      };
-
-      if (hotel.name && hotel.price > 0) {
-        hotels.push(hotel);
-      }
-    });
-
-    console.log("MakeMyTrip Hotels:", hotels);
-    return hotels;
-  } catch (error) {
-    console.error("MakeMyTrip scraping error:", error.message);
-    return [];
-  }
-}
-
 async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -128,9 +30,8 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
   try {
     await page.setUserAgent(randomUseragent.getRandom());
 
-    const url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(
-      location
-    )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
+    console.log("Navigating to Booking.com...");
+    const url = `https://www.booking.com/searchresults.html?ss=${location}`;
     await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
 
     // Wait for hotels to load
@@ -164,9 +65,9 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
     });
 
     hotels.push(...results.filter((hotel) => hotel.name && hotel.price > 0));
-    console.log("Booking.com Hotels:", hotels);
+    console.log("Hotels scrapped:", hotels);
   } catch (error) {
-    console.error("Booking.com scraping error:", error.message);
+    console.error("hotel scraping error:", error.message);
   } finally {
     await browser.close();
   }
@@ -180,20 +81,13 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
   );
 
   try {
-    // Try multiple sources in parallel
     const [bookingResults, agodaResults, mmtResults] = await Promise.all([
-      scrapeBookingDotCom(location, checkInDate, checkOutDate).catch((err) => {
-        console.error("Booking.com error:", err.message);
-        return [];
-      }),
-      scrapeAgodaHotels(location, checkInDate).catch((err) => {
-        console.error("Agoda error:", err.message);
-        return [];
-      }),
-      scrapeMakeMyTripHotels(location, checkInDate).catch((err) => {
-        console.error("MakeMyTrip error:", err.message);
-        return [];
-      }),
+      scrapeFromBookingDotCom(location, checkInDate, checkOutDate).catch(
+        (err) => {
+          console.error("Booking.com error:", err.message);
+          return [];
+        }
+      ),
     ]);
 
     let allHotels = [...bookingResults, ...agodaResults, ...mmtResults];
@@ -218,3 +112,4 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
 module.exports = {
   scrapeHotels,
 };
+*/

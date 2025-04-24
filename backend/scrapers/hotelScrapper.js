@@ -71,7 +71,9 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
           item.querySelectorAll('[data-testid="facility-icons"] span'),
           (span) => span.innerText?.trim()
         ),
-        imageUrl: item.querySelector("img")?.src,
+        imageUrl: item.querySelector(
+          '[data-testid="property-card-desktop-single-image"] img'
+        )?.src,
         description: item
           .querySelector('[data-testid="description"]')
           ?.innerText?.trim(),
