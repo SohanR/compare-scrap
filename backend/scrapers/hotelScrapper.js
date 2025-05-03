@@ -19,6 +19,16 @@ async function setupBrowser() {
 }
 
 async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
+  // Adjust checkOutDate if it is the same as checkInDate
+  if (checkInDate === checkOutDate) {
+    const checkIn = new Date(checkInDate);
+    checkIn.setDate(checkIn.getDate() + 1); // Increment by 1 day
+    checkOutDate = checkIn.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    console.log(
+      `\x1b[33mCheck-out date adjusted to:\x1b[0m ${checkOutDate}` // Yellow log
+    );
+  }
+
   const browser = await setupBrowser();
   const page = await browser.newPage();
   const hotels = [];
@@ -28,9 +38,13 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
 
     const url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(
       location
+    )}&ssne=${encodeURIComponent(location)}&ssne_untouched=${encodeURIComponent(
+      location
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
 
     console.log(`\x1b[34mNavigating to Booking.com URL:\x1b[0m ${url}`); // Blue log
+    console.log("checkInDate:", checkInDate); // Debug log
+    console.log("checkOutDate:", checkOutDate); // Debug log
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
 
@@ -54,15 +68,19 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
 
     const results = await page.evaluate(() => {
       const items = document.querySelectorAll('[data-testid="property-card"]');
-      console.log(`Number of property cards found: ${items.length}`);
       return Array.from(items).map((item) => ({
         name: item.querySelector('[data-testid="title"]')?.innerText?.trim(),
-        price: parseFloat(
+        price:
+          parseFloat(
+            item
+              .querySelector('[data-testid="price-and-discounted-price"]')
+              ?.textContent?.match(/[\d,]+(\.\d+)?/g)?.[0]
+              ?.replace(/,/g, "")
+          ) || null, // Ensure price is null if not found
+        rating:
           item
-            .querySelector('[data-testid="price-and-discounted-price"]')
-            ?.innerText?.replace(/[^0-9.]/g, "")
-        ),
-        rating: item.querySelector(".b5cd09854e")?.innerText?.trim(),
+            .querySelector('[data-testid="review-score"] .f63b14ab7a')
+            ?.innerText?.trim() || null, // Extract rating or set to null
         location: item
           .querySelector('[data-testid="address"]')
           ?.innerText?.trim(),
