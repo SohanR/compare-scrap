@@ -64,7 +64,7 @@ const ResultCard = ({ item, type }) => {
           component="img"
           sx={{ width: 200, objectFit: "cover" }}
           image={
-            item.imageUrl || `https://source.unsplash.com/featured/?${type}`
+            item.imageUrl || `https://picsum.photos/200`
           }
           alt={item.name}
         />
@@ -84,9 +84,9 @@ const ResultCard = ({ item, type }) => {
 
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
               <Rating
-                value={parseFloat(item.rating) || 0}
+                value={parseFloat(item.rating)/2 || 0}
                 readOnly
-                precision={0.5}
+                precision={0.1}
                 size="small"
               />
               <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
