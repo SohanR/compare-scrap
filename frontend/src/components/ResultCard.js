@@ -63,9 +63,7 @@ const ResultCard = ({ item, type }) => {
         <CardMedia
           component="img"
           sx={{ width: 200, objectFit: "cover" }}
-          image={
-            item.imageUrl || `https://picsum.photos/200`
-          }
+          image={item.imageUrl || `https://picsum.photos/200`}
           alt={item.name}
         />
 
@@ -84,7 +82,7 @@ const ResultCard = ({ item, type }) => {
 
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
               <Rating
-                value={parseFloat(item.rating)/2 || 0}
+                value={parseFloat(item.rating) / 2 || 0}
                 readOnly
                 precision={0.1}
                 size="small"
@@ -141,12 +139,6 @@ const ResultCard = ({ item, type }) => {
                   </Box>
                 </Box>
               </Box>
-            )}
-
-            {type === "tourist-place" && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {item.description}
-              </Typography>
             )}
 
             <Box
