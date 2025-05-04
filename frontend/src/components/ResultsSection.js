@@ -68,16 +68,16 @@ const ResultsSection = ({
   };
 
   const tabData = [
-    {
-      label: "Transportation",
-      Component: ResultCard,
-      data: results?.transportation || [],
-    },
+    // {
+    //   label: "Transportation",
+    //   Component: ResultCard,
+    //   data: results?.transportation || [],
+    // },
     { label: "Hotels", Component: ResultCard, data: results?.hotels || [] },
     {
       label: "Things to Do",
       Component: PlaceCard,
-      data: results?.touristPlaces || [],
+      data: results?.todo || [],
     },
     {
       label: "Tips & Stories",
