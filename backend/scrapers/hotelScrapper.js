@@ -43,15 +43,13 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
 
     console.log(`\x1b[34mNavigating to Booking.com URL:\x1b[0m ${url}`); // Blue log
-    console.log("checkInDate:", checkInDate); // Debug log
-    console.log("checkOutDate:", checkOutDate); // Debug log
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
 
     // Log the page content for debugging
     const pageContent = await page.content();
-    console.log("\x1b[33mPage content loaded. First 500 characters:\x1b[0m");
-    console.log(pageContent.substring(0, 500));
+    // console.log("\x1b[33mPage content loaded. First 500 characters:\x1b[0m");
+    // console.log(pageContent.substring(0, 500));
 
     // Wait for hotels to load
     try {
@@ -98,10 +96,10 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
       }));
     });
 
-    console.log(
-      "\x1b[36mRaw results from page evaluation:\x1b[0m",
-      JSON.stringify(results, null, 2)
-    ); // Cyan log
+    // console.log(
+    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
+    //   JSON.stringify(results, null, 2)
+    // ); // Cyan log
 
     hotels.push(...results.filter((hotel) => hotel.name));
     // console.log(
@@ -141,10 +139,10 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
     const sortedHotels = allHotels.sort((a, b) => a.price - b.price);
 
     console.log(`\x1b[32mFound ${sortedHotels.length} unique hotels\x1b[0m`); // Green log
-    console.log(
-      "\x1b[36mFinal sorted hotel results:\x1b[0m",
-      JSON.stringify(sortedHotels, null, 2)
-    ); // Cyan log
+    // console.log(
+    //   "\x1b[36mFinal sorted hotel results:\x1b[0m",
+    //   JSON.stringify(sortedHotels, null, 2)
+    // ); // Cyan log
     return sortedHotels;
   } catch (error) {
     console.error("\x1b[31mError during hotel scraping:\x1b[0m", error.message); // Red log
