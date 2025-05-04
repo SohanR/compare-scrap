@@ -5,6 +5,10 @@ const cors = require("cors");
 const { getAllTransportation } = require("./scrapers/transportation");
 const { scrapeHotels } = require("./scrapers/hotelScrapper");
 const { scrapeTouristPlaces } = require("./scrapers/tourist-places");
+const {
+  scrapeLonelyPlanetThingsToDo,
+  scrapeLonelyPlanetTipsAndStories,
+} = require("./scrapers/lonelyPlanet");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,26 +67,37 @@ app.post("/api/search", async (req, res) => {
     console.log(`Searching for: From=${from}, To=${to}, Date=${date}`);
 
     // Fetch all data concurrently
-    const [transportation, hotels, touristPlaces] = await Promise.all([
-      Promise.resolve([]), // Return empty array for transportation
-      scrapeHotels(to, date, date).catch((err) => {
-        console.error("Hotels error:", err);
-        return [];
-      }),
-      Promise.resolve([]), // Return empty array for tourist places
-    ]);
+    const [transportation, hotels, touristPlaces, tipsAndStories] =
+      await Promise.all([
+        Promise.resolve([]), // Return empty array for transportation
+        scrapeHotels(to, date, date).catch((err) => {
+          console.error("Hotels error:", err);
+          return [];
+        }),
+        scrapeLonelyPlanetThingsToDo(to).catch((err) => {
+          console.error("Things to Do error:", err);
+          return [];
+        }),
+        scrapeLonelyPlanetTipsAndStories(to).catch((err) => {
+          console.error("Tips & Stories error:", err);
+          return [];
+        }),
+      ]);
 
     console.log(`\x1b[32mFound ${hotels?.length || 0} hotels\x1b[0m`);
     console.log(
-      "\x1b[36mHotel results:\x1b[0m",
-      JSON.stringify(hotels, null, 2)
+      `\x1b[32mFound ${touristPlaces?.length || 0} things to do\x1b[0m`
+    );
+    console.log(
+      `\x1b[32mFound ${tipsAndStories?.length || 0} tips and stories\x1b[0m`
     );
 
     // Construct the results object
     const results = {
       transportation: transportation || [], // Ensure transportation is an array
       hotels: hotels || [], // Ensure hotels is an array
-      touristPlaces: touristPlaces || [], // Ensure touristPlaces is an array
+      todo: touristPlaces || [], // Ensure touristPlaces is an array
+      tipsAndStories: tipsAndStories || [], // Ensure tipsAndStories is an array
     };
 
     // Cache the results
