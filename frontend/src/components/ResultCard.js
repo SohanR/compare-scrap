@@ -63,7 +63,7 @@ const ResultCard = ({ item, type }) => {
         <CardMedia
           component="img"
           sx={{ width: 200, objectFit: "cover" }}
-          image={item.imageUrl || `https://picsum.photos/200`}
+          image={item.imageUrl}
           alt={item.name}
         />
 

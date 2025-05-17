@@ -23,6 +23,20 @@ export const searchTravel = async (searchParams) => {
   }
 };
 
+export const fetchFlightData = async (searchParams) => {
+  try {
+    const response = await api.post("/flight_data", searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch flight data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
 export const formatPrice = (price) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

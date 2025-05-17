@@ -2,7 +2,8 @@ import React from 'react';
 import { Box, Button, Container, Grid, Typography, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import { FaPlane, FaHotel, FaMapMarkedAlt, FaFilm, FaShoppingCart, FaChartLine } from 'react-icons/fa';
-
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import CoverImage from '../asset/cover.png'
 const FeatureCard = ({ icon: Icon, title, description, delay }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -64,9 +65,10 @@ const StatCard = ({ value, label, delay }) => (
   </motion.div>
 );
 
-const LandingPage = ({ onGetStarted }) => {
+const LandingPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const features = [
     {
@@ -131,7 +133,7 @@ const LandingPage = ({ onGetStarted }) => {
               <Button
                 variant="contained"
                 size="large"
-                onClick={onGetStarted}
+                onClick={() => navigate('/search')} 
                 sx={{
                   py: 2,
                   px: 4,
@@ -154,7 +156,7 @@ const LandingPage = ({ onGetStarted }) => {
             >
               <Box
                 component="img"
-                src="https://source.unsplash.com/featured/?travel,technology"
+                src={CoverImage}
                 alt="Travel Comparison"
                 sx={{
                   width: '100%',
@@ -221,7 +223,7 @@ const LandingPage = ({ onGetStarted }) => {
           <Button
             variant="contained"
             size="large"
-            onClick={onGetStarted}
+            onClick={() => navigate('/search')} 
             sx={{
               py: 2,
               px: 4,

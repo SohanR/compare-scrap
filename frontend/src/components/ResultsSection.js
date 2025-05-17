@@ -5,6 +5,8 @@ import PlaceCard from "./PlaceCard"; // Import PlaceCard
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import FlightSearchTab from "./FlightSearchTab"; // Import the new FlightSearchTab component
+import FlightSearch from "./FlightSearch";
 
 const ResultsSection = ({
   results,
@@ -14,6 +16,11 @@ const ResultsSection = ({
   onTabChange,
 }) => {
   const renderContent = (Component, data) => {
+    if (Component === FlightSearch) {
+      // Always render FlightSearchTab directly for the Transportation tab
+      return <FlightSearch />;
+    }
+
     if (loading) {
       return (
         <Box sx={{ py: 4 }}>
@@ -68,12 +75,16 @@ const ResultsSection = ({
   };
 
   const tabData = [
-    // {
-    //   label: "Transportation",
-    //   Component: ResultCard,
-    //   data: results?.transportation || [],
-    // },
-    { label: "Hotels", Component: ResultCard, data: results?.hotels || [] },
+    {
+      label: "Transportation",
+      Component: FlightSearch, // Always render FlightSearchTab
+      data: null, // No need for data here
+    },
+    {
+      label: "Hotels",
+      Component: ResultCard,
+      data: results?.hotels || [],
+    },
     {
       label: "Things to Do",
       Component: PlaceCard,
@@ -107,7 +118,7 @@ const ResultsSection = ({
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <span>{tab.label}</span>
-                {tab.data.length > 0 && (
+                {tab.data && tab.data.length > 0 && (
                   <Box
                     component="span"
                     sx={{

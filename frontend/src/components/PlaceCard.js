@@ -65,7 +65,7 @@ const PlaceCard = ({ place }) => {
             transition: "opacity 0.3s ease, visibility 0.3s ease",
           }}
         >
-          Click to learn more
+          Click here to read more
         </Box>
       </Card>
     </motion.div>

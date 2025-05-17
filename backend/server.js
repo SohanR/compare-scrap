@@ -123,3 +123,18 @@ app.get("/api/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+
+// TODO: implement flight search and transportation search
+// TODO: fixed the ui and home page.
+// TODO: add authentication and authorization
+// TODO: addd database
+// TODO let the user save their search results
+// TODO: let the user save their favorite hotels
+// TODO: let the user save their favorite transportation
+// TODO: let the user save their favorite things to do
+// TODO: let the user save their favorite tips and stories
+// TODO: let the user save their favorite places
+// TODO: let the user make and save their own trip plan.
+// TODO: baseed on saved plans, help them to estimate the cost of the trip
