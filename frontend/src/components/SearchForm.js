@@ -4,16 +4,66 @@ import ReactDatePicker from 'react-datepicker';
 import { motion } from 'framer-motion';
 import "react-datepicker/dist/react-datepicker.css";
 import { FaPlane, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
+import Autosuggest from 'react-autosuggest';
+import airportData from '../utils/airport.json';
+
+// Helper: Build airport suggestion list [{ city, iata, name }]
+const airportList = Object.entries(airportData)
+  .filter(([iata, data]) => data.city && data.name)
+  .map(([iata, data]) => ({
+    city: data.city,
+    iata,
+    name: data.name,
+  }));
+
+const getSuggestions = (value) => {
+  const inputValue = value.trim().toLowerCase();
+  if (!inputValue) return [];
+  return airportList.filter(
+    a =>
+      a.city.toLowerCase().includes(inputValue) ||
+      a.name.toLowerCase().includes(inputValue) ||
+      a.iata.toLowerCase().includes(inputValue)
+  ).slice(0, 8);
+};
+
+const getSuggestionValue = suggestion => `${suggestion.city} (${suggestion.iata})`;
+
+const renderSuggestion = suggestion => (
+  <span>
+    {suggestion.city} ({suggestion.name}) [{suggestion.iata}]
+  </span>
+);
 
 const SearchForm = ({ onSearch, loading }) => {
   const [from, setFrom] = useState('');
+  const [fromObj, setFromObj] = useState(null);
+  const [fromSuggestions, setFromSuggestions] = useState([]);
   const [to, setTo] = useState('');
+  const [toObj, setToObj] = useState(null);
+  const [toSuggestions, setToSuggestions] = useState([]);
   const [date, setDate] = useState(new Date());
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSearch({ from, to, date: date.toISOString().split('T')[0] });
+    if (!fromObj || !toObj) return;
+    onSearch({
+      from: fromObj,
+      to: toObj,
+      date: date.toISOString().split('T')[0]
+    });
   };
+
+  // Autosuggest handlers
+  const handleFromChange = (event, { newValue }) => setFrom(newValue);
+  const handleFromSuggestionsFetch = ({ value }) => setFromSuggestions(getSuggestions(value));
+  const handleFromSuggestionsClear = () => setFromSuggestions([]);
+  const handleFromSelect = (event, { suggestion }) => setFromObj({ city: suggestion.city, iata: suggestion.iata });
+
+  const handleToChange = (event, { newValue }) => setTo(newValue);
+  const handleToSuggestionsFetch = ({ value }) => setToSuggestions(getSuggestions(value));
+  const handleToSuggestionsClear = () => setToSuggestions([]);
+  const handleToSelect = (event, { suggestion }) => setToObj({ city: suggestion.city, iata: suggestion.iata });
 
   return (
     <motion.div
@@ -38,28 +88,70 @@ const SearchForm = ({ onSearch, loading }) => {
             
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Box sx={{ flex: 1, minWidth: '200px' }}>
-                <TextField
-                  fullWidth
-                  label="From"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  required
-                  InputProps={{
-                    startAdornment: <FaMapMarkerAlt style={{ marginRight: 8 }} />
+                <Autosuggest
+                  suggestions={fromSuggestions}
+                  onSuggestionsFetchRequested={handleFromSuggestionsFetch}
+                  onSuggestionsClearRequested={handleFromSuggestionsClear}
+                  getSuggestionValue={getSuggestionValue}
+                  renderSuggestion={renderSuggestion}
+                  onSuggestionSelected={handleFromSelect}
+                  inputProps={{
+                    value: from,
+                    onChange: handleFromChange,
+                    placeholder: "From (City or Airport)",
+                    required: true,
+                    style: { width: '100%', paddingLeft: 32 }
                   }}
+                  theme={{
+                    input: 'MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputAdornedStart',
+                    suggestionsContainer: 'autosuggest-suggestions-container',
+                    suggestion: 'autosuggest-suggestion',
+                    suggestionHighlighted: 'autosuggest-suggestion-highlighted'
+                  }}
+                  renderInputComponent={inputProps => (
+                    <TextField
+                      {...inputProps}
+                      fullWidth
+                      label="From"
+                      InputProps={{
+                        startAdornment: <FaMapMarkerAlt style={{ marginRight: 8 }} />
+                      }}
+                    />
+                  )}
                 />
               </Box>
               
               <Box sx={{ flex: 1, minWidth: '200px' }}>
-                <TextField
-                  fullWidth
-                  label="To"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  required
-                  InputProps={{
-                    startAdornment: <FaPlane style={{ marginRight: 8 }} />
+                <Autosuggest
+                  suggestions={toSuggestions}
+                  onSuggestionsFetchRequested={handleToSuggestionsFetch}
+                  onSuggestionsClearRequested={handleToSuggestionsClear}
+                  getSuggestionValue={getSuggestionValue}
+                  renderSuggestion={renderSuggestion}
+                  onSuggestionSelected={handleToSelect}
+                  inputProps={{
+                    value: to,
+                    onChange: handleToChange,
+                    placeholder: "To (City or Airport)",
+                    required: true,
+                    style: { width: '100%', paddingLeft: 32 }
                   }}
+                  theme={{
+                    input: 'MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputAdornedStart',
+                    suggestionsContainer: 'autosuggest-suggestions-container',
+                    suggestion: 'autosuggest-suggestion',
+                    suggestionHighlighted: 'autosuggest-suggestion-highlighted'
+                  }}
+                  renderInputComponent={inputProps => (
+                    <TextField
+                      {...inputProps}
+                      fullWidth
+                      label="To"
+                      InputProps={{
+                        startAdornment: <FaPlane style={{ marginRight: 8 }} />
+                      }}
+                    />
+                  )}
                 />
               </Box>
               
