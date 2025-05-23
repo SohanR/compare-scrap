@@ -6,6 +6,8 @@ import {
   Paper,
   Stack,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import ReactDatePicker from "react-datepicker";
 import { motion } from "framer-motion";
@@ -15,39 +17,26 @@ import Autosuggest from "react-autosuggest";
 import airportData from "../utils/airport.json";
 
 // Helper: Build airport suggestion list [{ city, iata, name }]
-console.log("Raw airportData:", airportData);
 const airportList = Object.entries(airportData)
   .filter(([key, data]) => {
-    // Log the object before filtering
-    console.log("Before filter:", { key, data });
     // Only include if data.iata, data.city, and data.name exist
     const hasIata = !!data.iata;
     const hasCity = !!data.city;
     const hasName = !!data.name;
     if (!hasIata || !hasCity || !hasName) {
-      console.log(`Filtered out: ${key}`, data);
     }
     return hasIata && hasCity && hasName;
   })
   .map(([key, data]) => {
     // Use the correct IATA code from data.iata, not the key
     const obj = { city: data.city, iata: data.iata, name: data.name };
-    console.log("Mapped airport object (using data.iata):", obj);
     return obj;
   });
 
-console.log("Final airportList:", airportList);
-
 const getSuggestions = (value) => {
   const inputValue = value.trim().toLowerCase();
-  console.log(
-    "getSuggestions called with value:",
-    value,
-    "inputValue:",
-    inputValue
-  );
+
   if (!inputValue) {
-    console.log("No input value, returning []");
     return [];
   }
   const filtered = airportList
@@ -58,22 +47,35 @@ const getSuggestions = (value) => {
         a.iata.toLowerCase().includes(inputValue)
     )
     .slice(0, 8);
-  console.log("Suggestions for input:", inputValue, "are:", filtered);
   return filtered;
 };
 
 const getSuggestionValue = (suggestion) => {
-  console.log("getSuggestionValue called with:", suggestion);
   return `${suggestion.city} (${suggestion.iata})`;
 };
 
 const renderSuggestion = (suggestion) => {
-  console.log("renderSuggestion called with:", suggestion);
   return (
     <span>
       {suggestion.city} ({suggestion.name}) [{suggestion.iata}]
     </span>
   );
+};
+
+// Custom styles for suggestion hover and selected
+const suggestionStyles = {
+  suggestion: {
+    padding: "12px 16px",
+    cursor: "pointer",
+    transition: "background 0.2s",
+  },
+  suggestionHighlighted: {
+    background: "#e3f2fd",
+  },
+  suggestionSelected: {
+    background: "#90caf9",
+    color: "#1565c0",
+  },
 };
 
 const SearchForm = ({ onSearch, loading }) => {
@@ -84,19 +86,17 @@ const SearchForm = ({ onSearch, loading }) => {
   const [toObj, setToObj] = useState(null);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [date, setDate] = useState(new Date());
+  const [tripType, setTripType] = useState("oneway"); // "oneway" or "twoway"
+  const [returnDate, setReturnDate] = useState(null);
+
+  const handleTripType = (event, newType) => {
+    if (newType) setTripType(newType);
+    if (newType === "oneway") setReturnDate(null);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(
-      "Form submitted. FromObj:",
-      fromObj,
-      "ToObj:",
-      toObj,
-      "Date:",
-      date
-    );
     if (!fromObj || !toObj) {
-      console.log("Form submission aborted: fromObj or toObj missing");
       return;
     }
     const payload = {
@@ -104,60 +104,42 @@ const SearchForm = ({ onSearch, loading }) => {
       to: toObj,
       date: date.toISOString().split("T")[0],
     };
-    console.log("Calling onSearch with payload:", payload);
+    if (tripType === "twoway" && returnDate) {
+      payload.returnDate = returnDate.toISOString().split("T")[0];
+    }
+    payload.tripType = tripType;
     onSearch(payload);
   };
 
   // Autosuggest handlers
   const handleFromChange = (event, { newValue }) => {
-    console.log("From input changed:", newValue);
     setFrom(newValue);
   };
   const handleFromSuggestionsFetch = ({ value }) => {
-    console.log("Fetching fromSuggestions for value:", value);
     const suggestions = getSuggestions(value);
     setFromSuggestions(suggestions);
-    console.log("Set fromSuggestions:", suggestions);
   };
   const handleFromSuggestionsClear = () => {
-    console.log("Clearing fromSuggestions");
     setFromSuggestions([]);
   };
 
   const handleToChange = (event, { newValue }) => {
-    console.log("To input changed:", newValue);
     setTo(newValue);
   };
   const handleToSuggestionsFetch = ({ value }) => {
-    console.log("Fetching toSuggestions for value:", value);
     const suggestions = getSuggestions(value);
     setToSuggestions(suggestions);
-    console.log("Set toSuggestions:", suggestions);
   };
   const handleToSuggestionsClear = () => {
-    console.log("Clearing toSuggestions");
     setToSuggestions([]);
   };
 
   const handleFromSelect = (event, { suggestion, suggestionValue }) => {
-    console.log(
-      "From suggestion selected:",
-      suggestion,
-      "Value:",
-      suggestionValue
-    );
     // Use the correct IATA code for lookup
     const fullObj = Object.values(airportData).find(
       (a) => a.iata === suggestion.iata
     );
-    console.log("Full object from JSON for fromObj:", fullObj);
     setFromObj({
-      city: suggestion.city,
-      iata: suggestion.iata,
-      name: suggestion.name,
-      ...fullObj,
-    });
-    console.log("Set fromObj:", {
       city: suggestion.city,
       iata: suggestion.iata,
       name: suggestion.name,
@@ -166,24 +148,12 @@ const SearchForm = ({ onSearch, loading }) => {
   };
 
   const handleToSelect = (event, { suggestion, suggestionValue }) => {
-    console.log(
-      "To suggestion selected:",
-      suggestion,
-      "Value:",
-      suggestionValue
-    );
     // Use the correct IATA code for lookup
     const fullObj = Object.values(airportData).find(
       (a) => a.iata === suggestion.iata
     );
-    console.log("Full object from JSON for toObj:", fullObj);
+
     setToObj({
-      city: suggestion.city,
-      iata: suggestion.iata,
-      name: suggestion.name,
-      ...fullObj,
-    });
-    console.log("Set toObj:", {
       city: suggestion.city,
       iata: suggestion.iata,
       name: suggestion.name,
@@ -212,6 +182,28 @@ const SearchForm = ({ onSearch, loading }) => {
               Find Your Perfect Trip
             </Typography>
 
+            {/* 1. Toggle for One Way / Two Way (Flights Only) */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Trip Type (Flights Only)
+              </Typography>
+              <ToggleButtonGroup
+                value={tripType}
+                exclusive
+                onChange={handleTripType}
+                aria-label="trip type"
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <ToggleButton value="oneway" aria-label="one way">
+                  One Way
+                </ToggleButton>
+                <ToggleButton value="twoway" aria-label="two way">
+                  Two Way
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
             <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
               <Box sx={{ flex: 1, minWidth: "200px" }}>
                 <Autosuggest
@@ -235,6 +227,21 @@ const SearchForm = ({ onSearch, loading }) => {
                     suggestion: "autosuggest-suggestion",
                     suggestionHighlighted: "autosuggest-suggestion-highlighted",
                   }}
+                  renderSuggestion={(suggestion, { query, isHighlighted }) => (
+                    <Box
+                      sx={{
+                        ...suggestionStyles.suggestion,
+                        ...(isHighlighted
+                          ? suggestionStyles.suggestionHighlighted
+                          : {}),
+                      }}
+                    >
+                      <span>
+                        {suggestion.city} ({suggestion.name}) [{suggestion.iata}
+                        ]
+                      </span>
+                    </Box>
+                  )}
                   renderInputComponent={(inputProps) => (
                     <TextField
                       {...inputProps}
@@ -256,7 +263,21 @@ const SearchForm = ({ onSearch, loading }) => {
                   onSuggestionsFetchRequested={handleToSuggestionsFetch}
                   onSuggestionsClearRequested={handleToSuggestionsClear}
                   getSuggestionValue={getSuggestionValue}
-                  renderSuggestion={renderSuggestion}
+                  renderSuggestion={(suggestion, { query, isHighlighted }) => (
+                    <Box
+                      sx={{
+                        ...suggestionStyles.suggestion,
+                        ...(isHighlighted
+                          ? suggestionStyles.suggestionHighlighted
+                          : {}),
+                      }}
+                    >
+                      <span>
+                        {suggestion.city} ({suggestion.name}) [{suggestion.iata}
+                        ]
+                      </span>
+                    </Box>
+                  )}
                   onSuggestionSelected={handleToSelect}
                   inputProps={{
                     value: to,
@@ -290,7 +311,6 @@ const SearchForm = ({ onSearch, loading }) => {
                   <ReactDatePicker
                     selected={date}
                     onChange={(date) => {
-                      console.log("Date changed:", date);
                       setDate(date);
                     }}
                     dateFormat="yyyy-MM-dd"
@@ -310,6 +330,36 @@ const SearchForm = ({ onSearch, loading }) => {
                   />
                 </div>
               </Box>
+              {/* 2. Return Date Picker for Two Way */}
+              {tripType === "twoway" && (
+                <Box sx={{ flex: 1, minWidth: "200px" }}>
+                  <div className="custom-datepicker-wrapper">
+                    <ReactDatePicker
+                      selected={returnDate}
+                      onChange={(date) => {
+                        console.log("Return date changed:", date);
+                        setReturnDate(date);
+                      }}
+                      dateFormat="yyyy-MM-dd"
+                      minDate={date || new Date()}
+                      customInput={
+                        <TextField
+                          fullWidth
+                          label="Return Date"
+                          value={
+                            returnDate ? returnDate.toLocaleDateString() : ""
+                          }
+                          InputProps={{
+                            startAdornment: (
+                              <FaCalendarAlt style={{ marginRight: 8 }} />
+                            ),
+                          }}
+                        />
+                      }
+                    />
+                  </div>
+                </Box>
+              )}
             </Box>
 
             <Button
