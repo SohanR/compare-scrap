@@ -2,9 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const { getAllTransportation } = require("./scrapers/transportation");
 const { scrapeHotels } = require("./scrapers/hotelScrapper");
-const { scrapeTouristPlaces } = require("./scrapers/tourist-places");
 const {
   scrapeLonelyPlanetThingsToDo,
   scrapeLonelyPlanetTipsAndStories,
@@ -46,7 +44,11 @@ function setCache(type, params, data) {
 
 // API Routes
 app.post("/api/search", async (req, res) => {
-  const { from, to, date } = req.body;
+  // const { from, to, date } = req.body;
+  console.log("request body", req.body);
+  const from = req.body.from.city;
+  const to = req.body.to.city;
+  const date = req.body.date;
 
   if (!from || !to || !date) {
     return res.status(400).json({
@@ -124,12 +126,11 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-
-
-// TODO: implement flight search and transportation search
+// Done: implement flight search and transportation search
+// TODO: aso effect on search results page
 // TODO: fixed the ui and home page.
 // TODO: add authentication and authorization
-// TODO: addd database
+// TODO: add database
 // TODO let the user save their search results
 // TODO: let the user save their favorite hotels
 // TODO: let the user save their favorite transportation
@@ -138,3 +139,4 @@ app.listen(PORT, () => {
 // TODO: let the user save their favorite places
 // TODO: let the user make and save their own trip plan.
 // TODO: baseed on saved plans, help them to estimate the cost of the trip
+// user search history
