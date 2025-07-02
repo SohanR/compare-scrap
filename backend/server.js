@@ -7,6 +7,7 @@ const {
   scrapeLonelyPlanetThingsToDo,
   scrapeLonelyPlanetTipsAndStories,
 } = require("./scrapers/lonelyPlanet");
+const { scrapeKayakFlights } = require("./scrapers/transportation");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,6 +50,8 @@ app.post("/api/search", async (req, res) => {
   const from = req.body.from.city;
   const to = req.body.to.city;
   const date = req.body.date;
+  const fromIata = req.body.from.iata;
+  const toIata = req.body.to.iata;
 
   if (!from || !to || !date) {
     return res.status(400).json({
@@ -71,7 +74,10 @@ app.post("/api/search", async (req, res) => {
     // Fetch all data concurrently
     const [transportation, hotels, touristPlaces, tipsAndStories] =
       await Promise.all([
-        Promise.resolve([]), // Return empty array for transportation
+        scrapeKayakFlights(fromIata, toIata, date).catch((err) => {
+          console.error("Transportation error:", err);
+          return [];
+        }),
         scrapeHotels(to, date, date).catch((err) => {
           console.error("Hotels error:", err);
           return [];
@@ -86,6 +92,9 @@ app.post("/api/search", async (req, res) => {
         }),
       ]);
 
+    console.log(
+      `\x1b[32mFound ${transportation?.length || 0} Transportation\x1b[0m`
+    );
     console.log(`\x1b[32mFound ${hotels?.length || 0} hotels\x1b[0m`);
     console.log(
       `\x1b[32mFound ${touristPlaces?.length || 0} things to do\x1b[0m`

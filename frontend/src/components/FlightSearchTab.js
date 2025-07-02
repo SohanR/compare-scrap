@@ -34,7 +34,7 @@ const FlightSearchTab = () => {
 
   return (
     <Box>
-      <Typography variant="h6" fontWeight="bold" gutterBottom>
+      {/* <Typography variant="h6" fontWeight="bold" gutterBottom>
         Search Flights
       </Typography>
       <Stack spacing={3} sx={{ mb: 4 }}>
@@ -91,7 +91,7 @@ const FlightSearchTab = () => {
         {results.map((result, index) => (
           <ResultCard key={index} item={result} type="transportation" />
         ))}
-      </Box>
+      </Box> */}
     </Box>
   );
 };
