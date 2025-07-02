@@ -145,10 +145,10 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
       }));
     });
 
-    console.log(
-      "\x1b[36mRaw results from page evaluation:\x1b[0m",
-      JSON.stringify(results, null, 2)
-    );
+    // console.log(
+    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
+    //   JSON.stringify(results, null, 2)
+    // );
 
     tipsAndStories.push(
       ...results.filter(
