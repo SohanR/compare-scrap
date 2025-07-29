@@ -2,13 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const { getAllTransportation } = require("./scrapers/transportation");
 const { scrapeHotels } = require("./scrapers/hotelScrapper");
-const { scrapeTouristPlaces } = require("./scrapers/tourist-places");
 const {
   scrapeLonelyPlanetThingsToDo,
   scrapeLonelyPlanetTipsAndStories,
 } = require("./scrapers/lonelyPlanet");
+const { scrapeKayakFlights } = require("./scrapers/transportation");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,7 +45,13 @@ function setCache(type, params, data) {
 
 // API Routes
 app.post("/api/search", async (req, res) => {
-  const { from, to, date } = req.body;
+  // const { from, to, date } = req.body;
+  console.log("request body", req.body);
+  const from = req.body.from.city;
+  const to = req.body.to.city;
+  const date = req.body.date;
+  const fromIata = req.body.from.iata;
+  const toIata = req.body.to.iata;
 
   if (!from || !to || !date) {
     return res.status(400).json({
@@ -69,7 +74,10 @@ app.post("/api/search", async (req, res) => {
     // Fetch all data concurrently
     const [transportation, hotels, touristPlaces, tipsAndStories] =
       await Promise.all([
-        Promise.resolve([]), // Return empty array for transportation
+        scrapeKayakFlights(fromIata, toIata, date).catch((err) => {
+          console.error("Transportation error:", err);
+          return [];
+        }),
         scrapeHotels(to, date, date).catch((err) => {
           console.error("Hotels error:", err);
           return [];
@@ -84,6 +92,9 @@ app.post("/api/search", async (req, res) => {
         }),
       ]);
 
+    console.log(
+      `\x1b[32mFound ${transportation?.length || 0} Transportation\x1b[0m`
+    );
     console.log(`\x1b[32mFound ${hotels?.length || 0} hotels\x1b[0m`);
     console.log(
       `\x1b[32mFound ${touristPlaces?.length || 0} things to do\x1b[0m`
@@ -124,12 +135,11 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-
-
-// TODO: implement flight search and transportation search
+// Done: implement flight search and transportation search
+// TODO: aso effect on search results page
 // TODO: fixed the ui and home page.
 // TODO: add authentication and authorization
-// TODO: addd database
+// TODO: add database
 // TODO let the user save their search results
 // TODO: let the user save their favorite hotels
 // TODO: let the user save their favorite transportation
@@ -138,3 +148,4 @@ app.listen(PORT, () => {
 // TODO: let the user save their favorite places
 // TODO: let the user make and save their own trip plan.
 // TODO: baseed on saved plans, help them to estimate the cost of the trip
+// user search history

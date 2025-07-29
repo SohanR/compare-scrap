@@ -6,6 +6,8 @@ import {
   Paper,
   Stack,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import ReactDatePicker from "react-datepicker";
 import { motion } from "framer-motion";
@@ -16,22 +18,28 @@ import airportData from "../utils/airport.json";
 
 // Helper: Build airport suggestion list [{ city, iata, name }]
 const airportList = Object.entries(airportData)
-  .filter(
-    ([code, data]) =>
-      code.length === 3 && // Only IATA codes (3 letters)
-      data.city &&
-      data.name
-  )
-  .map(([iata, data]) => ({
-    city: data.city,
-    iata,
-    name: data.name,
-  }));
+  .filter(([key, data]) => {
+    // Only include if data.iata, data.city, and data.name exist
+    const hasIata = !!data.iata;
+    const hasCity = !!data.city;
+    const hasName = !!data.name;
+    if (!hasIata || !hasCity || !hasName) {
+    }
+    return hasIata && hasCity && hasName;
+  })
+  .map(([key, data]) => {
+    // Use the correct IATA code from data.iata, not the key
+    const obj = { city: data.city, iata: data.iata, name: data.name };
+    return obj;
+  });
 
 const getSuggestions = (value) => {
   const inputValue = value.trim().toLowerCase();
-  if (!inputValue) return [];
-  return airportList
+
+  if (!inputValue) {
+    return [];
+  }
+  const filtered = airportList
     .filter(
       (a) =>
         a.city.toLowerCase().includes(inputValue) ||
@@ -39,16 +47,36 @@ const getSuggestions = (value) => {
         a.iata.toLowerCase().includes(inputValue)
     )
     .slice(0, 8);
+  return filtered;
 };
 
-const getSuggestionValue = (suggestion) =>
-  `${suggestion.city} (${suggestion.iata})`;
+const getSuggestionValue = (suggestion) => {
+  return `${suggestion.city} (${suggestion.iata})`;
+};
 
-const renderSuggestion = (suggestion) => (
-  <span>
-    {suggestion.city} ({suggestion.name}) [{suggestion.iata}]
-  </span>
-);
+const renderSuggestion = (suggestion) => {
+  return (
+    <span>
+      {suggestion.city} ({suggestion.name}) [{suggestion.iata}]
+    </span>
+  );
+};
+
+// Custom styles for suggestion hover and selected
+const suggestionStyles = {
+  suggestion: {
+    padding: "12px 16px",
+    cursor: "pointer",
+    transition: "background 0.2s",
+  },
+  suggestionHighlighted: {
+    background: "#e3f2fd",
+  },
+  suggestionSelected: {
+    background: "#90caf9",
+    color: "#1565c0",
+  },
+};
 
 const SearchForm = ({ onSearch, loading }) => {
   const [from, setFrom] = useState("");
@@ -58,40 +86,79 @@ const SearchForm = ({ onSearch, loading }) => {
   const [toObj, setToObj] = useState(null);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [date, setDate] = useState(new Date());
+  const [tripType, setTripType] = useState("oneway"); // "oneway" or "twoway"
+  const [returnDate, setReturnDate] = useState(null);
+
+  const handleTripType = (event, newType) => {
+    if (newType) setTripType(newType);
+    if (newType === "oneway") setReturnDate(null);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!fromObj || !toObj) return;
-    onSearch({
+    if (!fromObj || !toObj) {
+      return;
+    }
+    const payload = {
       from: fromObj,
       to: toObj,
       date: date.toISOString().split("T")[0],
-    });
+    };
+    if (tripType === "twoway" && returnDate) {
+      payload.returnDate = returnDate.toISOString().split("T")[0];
+    }
+    payload.tripType = tripType;
+    onSearch(payload);
   };
 
   // Autosuggest handlers
-  const handleFromChange = (event, { newValue, method }) => {
+  const handleFromChange = (event, { newValue }) => {
     setFrom(newValue);
-    if (method === "type") setFromObj(null); // clear obj if typing
   };
-  const handleFromSuggestionsFetch = ({ value }) =>
-    setFromSuggestions(getSuggestions(value));
-  const handleFromSuggestionsClear = () => setFromSuggestions([]);
-  const handleFromSelect = (event, { suggestionValue, suggestion }) => {
-    setFrom(suggestionValue);
-    setFromObj({ city: suggestion.city, iata: suggestion.iata });
+  const handleFromSuggestionsFetch = ({ value }) => {
+    const suggestions = getSuggestions(value);
+    setFromSuggestions(suggestions);
+  };
+  const handleFromSuggestionsClear = () => {
+    setFromSuggestions([]);
   };
 
-  const handleToChange = (event, { newValue, method }) => {
+  const handleToChange = (event, { newValue }) => {
     setTo(newValue);
-    if (method === "type") setToObj(null);
   };
-  const handleToSuggestionsFetch = ({ value }) =>
-    setToSuggestions(getSuggestions(value));
-  const handleToSuggestionsClear = () => setToSuggestions([]);
-  const handleToSelect = (event, { suggestionValue, suggestion }) => {
-    setTo(suggestionValue);
-    setToObj({ city: suggestion.city, iata: suggestion.iata });
+  const handleToSuggestionsFetch = ({ value }) => {
+    const suggestions = getSuggestions(value);
+    setToSuggestions(suggestions);
+  };
+  const handleToSuggestionsClear = () => {
+    setToSuggestions([]);
+  };
+
+  const handleFromSelect = (event, { suggestion, suggestionValue }) => {
+    // Use the correct IATA code for lookup
+    const fullObj = Object.values(airportData).find(
+      (a) => a.iata === suggestion.iata
+    );
+    setFromObj({
+      city: suggestion.city,
+      iata: suggestion.iata,
+      name: suggestion.name,
+      ...fullObj,
+    });
+  };
+
+  const handleToSelect = (event, { suggestion, suggestionValue }) => {
+    // Use the correct IATA code for lookup
+    const fullObj = Object.values(airportData).find(
+      (a) => a.iata === suggestion.iata
+    );
+
+    setToObj({
+      city: suggestion.city,
+      iata: suggestion.iata,
+      name: suggestion.name,
+      ...fullObj,
+    });
   };
 
   return (
@@ -114,6 +181,28 @@ const SearchForm = ({ onSearch, loading }) => {
             <Typography variant="h5" fontWeight="bold" color="primary">
               Find Your Perfect Trip
             </Typography>
+
+            {/* 1. Toggle for One Way / Two Way (Flights Only) */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Trip Type (Flights Only)
+              </Typography>
+              <ToggleButtonGroup
+                value={tripType}
+                exclusive
+                onChange={handleTripType}
+                aria-label="trip type"
+                size="small"
+                sx={{ mb: 2 }}
+              >
+                <ToggleButton value="oneway" aria-label="one way">
+                  One Way
+                </ToggleButton>
+                <ToggleButton value="twoway" aria-label="two way">
+                  Two Way
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
 
             <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
               <Box sx={{ flex: 1, minWidth: "200px" }}>
@@ -138,6 +227,21 @@ const SearchForm = ({ onSearch, loading }) => {
                     suggestion: "autosuggest-suggestion",
                     suggestionHighlighted: "autosuggest-suggestion-highlighted",
                   }}
+                  renderSuggestion={(suggestion, { query, isHighlighted }) => (
+                    <Box
+                      sx={{
+                        ...suggestionStyles.suggestion,
+                        ...(isHighlighted
+                          ? suggestionStyles.suggestionHighlighted
+                          : {}),
+                      }}
+                    >
+                      <span>
+                        {suggestion.city} ({suggestion.name}) [{suggestion.iata}
+                        ]
+                      </span>
+                    </Box>
+                  )}
                   renderInputComponent={(inputProps) => (
                     <TextField
                       {...inputProps}
@@ -159,7 +263,21 @@ const SearchForm = ({ onSearch, loading }) => {
                   onSuggestionsFetchRequested={handleToSuggestionsFetch}
                   onSuggestionsClearRequested={handleToSuggestionsClear}
                   getSuggestionValue={getSuggestionValue}
-                  renderSuggestion={renderSuggestion}
+                  renderSuggestion={(suggestion, { query, isHighlighted }) => (
+                    <Box
+                      sx={{
+                        ...suggestionStyles.suggestion,
+                        ...(isHighlighted
+                          ? suggestionStyles.suggestionHighlighted
+                          : {}),
+                      }}
+                    >
+                      <span>
+                        {suggestion.city} ({suggestion.name}) [{suggestion.iata}
+                        ]
+                      </span>
+                    </Box>
+                  )}
                   onSuggestionSelected={handleToSelect}
                   inputProps={{
                     value: to,
@@ -192,7 +310,9 @@ const SearchForm = ({ onSearch, loading }) => {
                 <div className="custom-datepicker-wrapper">
                   <ReactDatePicker
                     selected={date}
-                    onChange={(date) => setDate(date)}
+                    onChange={(date) => {
+                      setDate(date);
+                    }}
                     dateFormat="yyyy-MM-dd"
                     minDate={new Date()}
                     customInput={
@@ -210,6 +330,36 @@ const SearchForm = ({ onSearch, loading }) => {
                   />
                 </div>
               </Box>
+              {/* 2. Return Date Picker for Two Way */}
+              {tripType === "twoway" && (
+                <Box sx={{ flex: 1, minWidth: "200px" }}>
+                  <div className="custom-datepicker-wrapper">
+                    <ReactDatePicker
+                      selected={returnDate}
+                      onChange={(date) => {
+                        console.log("Return date changed:", date);
+                        setReturnDate(date);
+                      }}
+                      dateFormat="yyyy-MM-dd"
+                      minDate={date || new Date()}
+                      customInput={
+                        <TextField
+                          fullWidth
+                          label="Return Date"
+                          value={
+                            returnDate ? returnDate.toLocaleDateString() : ""
+                          }
+                          InputProps={{
+                            startAdornment: (
+                              <FaCalendarAlt style={{ marginRight: 8 }} />
+                            ),
+                          }}
+                        />
+                      }
+                    />
+                  </div>
+                </Box>
+              )}
             </Box>
 
             <Button

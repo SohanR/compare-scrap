@@ -18,7 +18,8 @@ async function setupBrowser() {
   });
 }
 
-async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
+async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
+  // to: full object, checkInDate: date, checkOutDate: returnDate
   // Adjust checkOutDate if it is the same as checkInDate
   if (checkInDate === checkOutDate) {
     const checkIn = new Date(checkInDate);
@@ -37,9 +38,9 @@ async function scrapeBookingDotCom(location, checkInDate, checkOutDate) {
     await page.setUserAgent(randomUseragent.getRandom());
 
     const url = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(
-      location
-    )}&ssne=${encodeURIComponent(location)}&ssne_untouched=${encodeURIComponent(
-      location
+      to
+    )}&ssne=${encodeURIComponent(to)}&ssne_untouched=${encodeURIComponent(
+      to
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
 
     console.log(`\x1b[34mNavigating to Booking.com URL:\x1b[0m ${url}`); // Blue log

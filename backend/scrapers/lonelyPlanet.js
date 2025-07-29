@@ -17,9 +17,9 @@ async function setupBrowser() {
   });
 }
 
-async function scrapeLonelyPlanetThingsToDo(destination) {
+async function scrapeLonelyPlanetThingsToDo(to) {
   console.log(
-    `\x1b[34mStarting Lonely Planet scraping for Things to Do: ${destination}\x1b[0m`
+    `\x1b[34mStarting Lonely Planet scraping for Things to Do: ${to}\x1b[0m`
   );
 
   const browser = await setupBrowser();
@@ -28,7 +28,7 @@ async function scrapeLonelyPlanetThingsToDo(destination) {
 
   try {
     const url = `https://www.lonelyplanet.com/search?q=${encodeURIComponent(
-      destination
+      to
     )}&sortBy=pois`;
     console.log(`\x1b[34mNavigating to URL:\x1b[0m ${url}`);
 
@@ -145,10 +145,10 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
       }));
     });
 
-    console.log(
-      "\x1b[36mRaw results from page evaluation:\x1b[0m",
-      JSON.stringify(results, null, 2)
-    );
+    // console.log(
+    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
+    //   JSON.stringify(results, null, 2)
+    // );
 
     tipsAndStories.push(
       ...results.filter(

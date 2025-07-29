@@ -1,124 +1,257 @@
-const puppeteer = require('puppeteer');
+// const puppeteer = require("puppeteer-extra");
+// const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+// const randomUseragent = require("random-useragent");
+
+// puppeteer.use(StealthPlugin());
+
+// async function setupBrowser() {
+//   return await puppeteer.launch({
+//     headless: true,
+//     args: [
+//       "--disable-web-security",
+//       "--disable-features=IsolateOrigins,site-per-process",
+//       "--no-sandbox",
+//       "--disable-setuid-sandbox",
+//       "--disable-blink-features=AutomationControlled",
+//     ],
+//     defaultViewport: { width: 1920, height: 1080 },
+//   });
+// }
+
+// async function scrapeKayakFlights(from, to, date) {
+//   // from, to: IATA codes (e.g. DAC, KUL), date: YYYY-MM-DD
+//   const url = `https://booking.kayak.com/flights/${from}-${to}/${date}?sort=price_a`;
+//   console.log(`\x1b[34mNavigating to Kayak URL:\x1b[0m ${url}`);
+
+//   const browser = await setupBrowser();
+//   const page = await browser.newPage();
+//   await page.setUserAgent(randomUseragent.getRandom());
+//   const flights = [];
+
+//   try {
+//     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
+
+//     // Wait for flight list to load
+//     await page.waitForSelector("ol.hJSA-list > li.hJSA-item", {
+//       timeout: 30000,
+//     });
+
+//     const results = await page.evaluate(() => {
+//       const items = document.querySelectorAll("ol.hJSA-list > li.hJSA-item");
+//       return Array.from(items).map((item) => {
+//         // Time
+//         const timeBlock = item.querySelector(".vmXl-mod-variant-large");
+//         let time = null;
+//         if (timeBlock) {
+//           const spans = timeBlock.querySelectorAll("span");
+//           time = Array.from(spans)
+//             .map((s) => s.innerText)
+//             .join(" ");
+//         }
+
+//         // Flight names (carriers)
+//         const carrierBlock = item.querySelector(
+//           ".c_cgF.c_cgF-mod-variant-default"
+//         );
+//         let flightName = null;
+//         if (carrierBlock) {
+//           flightName = carrierBlock.innerText;
+//         }
+
+//         // Stops
+//         const stopsBlock = item.querySelector(".JWEO-stops-text");
+//         let stops = stopsBlock ? stopsBlock.innerText : null;
+
+//         // Duration
+//         const durationBlock = item.querySelector(
+//           ".xdW8 .vmXl-mod-variant-default"
+//         );
+//         let duration = durationBlock ? durationBlock.innerText : null;
+
+//         // Price
+//         // Price
+//         let price = null;
+//         const priceBlock = item.querySelector("[data-price]");
+//         if (priceBlock) {
+//           price = priceBlock.getAttribute("data-price");
+//         } else {
+//           // Try fallback: look for price text
+//           const priceText = item.innerText.match(/\$\d[\d,]*/);
+//           price = priceText ? priceText[0] : null;
+//         }
+
+//         // Provider name
+//         let provider = null;
+//         const providerBlock = item.querySelector(
+//           ".provider-name, .booking-link"
+//         );
+//         if (providerBlock) {
+//           provider = providerBlock.innerText;
+//         }
+
+//         // Booking link
+//         let bookingLink = null;
+//         const linkBlock = item.querySelector("a.booking-link");
+//         if (linkBlock) {
+//           bookingLink = linkBlock.href;
+//         }
+
+//         // Fallback: try to find any link with "booking" in class
+//         if (!bookingLink) {
+//           const altLink = item.querySelector("a[href*='booking']");
+//           if (altLink) bookingLink = altLink.href;
+//         }
+//         return {
+//           time,
+//           flightName,
+//           stops,
+//           duration,
+//           price,
+//           provider,
+//           bookingLink,
+//         };
+//       });
+//     });
+
+//     flights.push(
+//       ...results.filter((f) => f.time && f.flightName && f.duration)
+//     );
+//     console.log(`\x1b[32mFound ${flights.length} flights\x1b[0m`);
+//     console.log("flights:", flights);
+//   } catch (error) {
+//     console.error(
+//       "\x1b[31mError scraping Kayak flights:\x1b[0m",
+//       error.message
+//     );
+//   } finally {
+//     await browser.close();
+//   }
+
+//   return flights;
+// }
+
+// module.exports = {
+//   scrapeKayakFlights,
+// };
+
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const randomUseragent = require("random-useragent");
+
+puppeteer.use(StealthPlugin());
 
 async function setupBrowser() {
   return await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     args: [
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--no-sandbox',
-      '--disable-setuid-sandbox'
+      "--disable-web-security",
+      "--disable-features=IsolateOrigins,site-per-process",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-blink-features=AutomationControlled",
     ],
-    defaultViewport: { width: 1920, height: 1080 }
+    defaultViewport: { width: 1366, height: 768 },
   });
 }
 
-async function scrapeBuses(from, to, date) {
-  // const buses = [];
-  // const browser = await setupBrowser();
-  // const page = await browser.newPage();
+async function scrapeKayakFlights(from, to, date) {
+  const url = `https://booking.kayak.com/flights/${from}-${to}/${date}?sort=price_a`;
+  console.log(`\x1b[34mNavigating to Kayak URL:\x1b[0m ${url}`);
 
-  // try {
-  //   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-  //   await page.goto(`https://www.shohoz.com/bus/search?fromCity=${encodeURIComponent(from)}&toCity=${encodeURIComponent(to)}&doj=${date}`, 
-  //     { waitUntil: 'networkidle0', timeout: 10000 });
-    
-  //   await page.waitForSelector('.bus-list-item', { timeout: 5000 });
-    
-  //   const results = await page.evaluate(() => {
-  //     const items = document.querySelectorAll('.bus-list-item');
-  //     return Array.from(items).map(item => ({
-  //       type: 'bus',
-  //       name: item.querySelector('.operator-name')?.innerText?.trim() || 'Unknown',
-  //       provider: item.querySelector('.operator-name')?.innerText?.trim() || 'Unknown',
-  //       price: parseFloat(item.querySelector('.fare')?.innerText?.replace(/[^0-9.]/g, '') || '0'),
-  //       duration: item.querySelector('.duration')?.innerText?.trim() || 'Unknown',
-  //       departureTime: item.querySelector('.departure-time')?.innerText?.trim() || 'Unknown',
-  //       arrivalTime: item.querySelector('.arrival-time')?.innerText?.trim() || 'Unknown',
-  //       rating: item.querySelector('.rating')?.innerText?.trim() || 'Unknown',
-  //       imageUrl: item.querySelector('.image')?.getAttribute('src') || 'Unknown',
-  //       description: item.querySelector('.description')?.innerText?.trim() || 'Unknown',
-  //       bookingLink: item.querySelector('.booking-link')?.getAttribute('href') || 'Unknown'
-  //     }));
-  //   });
+  const browser = await setupBrowser();
+  const page = await browser.newPage();
+  await page.setUserAgent(randomUseragent.getRandom());
 
-  //   if (results.length > 0) {
-  //     buses.push(...results.filter(bus => bus.price > 0));
-  //   }
-  // } catch (error) {
-  //   console.error('Bus scraping error:', error);
-  // }
+  const flights = [];
 
-  // await browser.close();
-  // return buses;
+  try {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-  // Return empty array for now
-  return [];
-}
+    // Optional: dismiss modal or popups if any
+    try {
+      await page.waitForTimeout(3000);
+      const closeBtn = await page.$("button[aria-label='Close']");
+      if (closeBtn) {
+        await closeBtn.click();
+        await page.waitForTimeout(1000);
+      }
+    } catch (err) {}
 
-async function scrapeFlights(from, to, date) {
-  // const flights = [];
-  // const browser = await setupBrowser();
-  // const page = await browser.newPage();
+    // Wait for flight results to appear
+    await page.waitForFunction(
+      () => {
+        return (
+          document.querySelectorAll("ol.hJSA-list li.hJSA-item").length > 0
+        );
+      },
+      { timeout: 60000 }
+    );
 
-  // try {
-  //   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-    
-  //   await page.goto(`https://www.biman-airlines.com/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`, 
-  //     { waitUntil: 'networkidle0', timeout: 10000 });
-    
-  //   await page.waitForSelector('.flight-item', { timeout: 5000 });
-    
-  //   const results = await page.evaluate(() => {
-  //     const items = document.querySelectorAll('.flight-item');
-  //     return Array.from(items).map(item => ({
-  //       type: 'flight',
-  //       name: item.querySelector('.airline-name')?.innerText?.trim() || 'Unknown',
-  //       provider: item.querySelector('.airline-name')?.innerText?.trim() || 'Unknown',
-  //       price: parseFloat(item.querySelector('.price')?.innerText?.replace(/[^0-9.]/g, '') || '0'),
-  //       duration: item.querySelector('.duration')?.innerText?.trim() || 'Unknown',
-  //       departureTime: item.querySelector('.departure-time')?.innerText?.trim() || 'Unknown',
-  //       arrivalTime: item.querySelector('.arrival-time')?.innerText?.trim() || 'Unknown',
-  //       rating: item.querySelector('.rating')?.innerText?.trim() || 'Unknown',
-  //       imageUrl: item.querySelector('.image')?.getAttribute('src') || 'Unknown',
-  //       description: item.querySelector('.description')?.innerText?.trim() || 'Unknown',
-  //       bookingLink: item.querySelector('.booking-link')?.getAttribute('href') || 'Unknown'
-  //     }));
-  //   });
+    const results = await page.evaluate(() => {
+      const items = document.querySelectorAll("ol.hJSA-list li.hJSA-item");
 
-  //   if (results.length > 0) {
-  //     flights.push(...results.filter(flight => flight.price > 0));
-  //   }
-  // } catch (error) {
-  //   console.error('Flight scraping error:', error);
-  // }
+      return Array.from(items).map((item) => {
+        const timeElem = item.querySelector(".vmXl-mod-variant-large");
+        const time = timeElem
+          ? Array.from(timeElem.querySelectorAll("span"))
+              .map((s) => s.innerText)
+              .join(" ")
+          : null;
 
-  // await browser.close();
-  // return flights;
+        const flightNameElem = item.querySelector(
+          ".c_cgF.c_cgF-mod-variant-default"
+        );
+        const flightName = flightNameElem ? flightNameElem.innerText : null;
 
-  // Return empty array for now
-  return [];
-}
+        const stopsElem = item.querySelector(".JWEO-stops-text");
+        const stops = stopsElem ? stopsElem.innerText.trim() : null;
 
-async function getAllTransportation(from, to, date) {
-  // try {
-  //   const [buses, flights] = await Promise.all([
-  //     scrapeBuses(from, to, date),
-  //     scrapeFlights(from, to, date)
-  //   ]);
+        const durationElem = item.querySelector(
+          ".xdW8 .vmXl-mod-variant-default"
+        );
+        const duration = durationElem ? durationElem.innerText.trim() : null;
 
-  //   const allTransportation = [...buses, ...flights];
-  //   return allTransportation.sort((a, b) => a.price - b.price);
-  // } catch (error) {
-  //   console.error('Transportation scraping error:', error);
-  //   return [];
-  // }
+        const priceTextElem = item.querySelector(".e2GB-price-text");
+        const price = priceTextElem
+          ? priceTextElem.innerText.replace(/\s/g, "")
+          : null;
 
-  // Return empty array for now
-  return [];
+        const providerElem = item.querySelector(".M_JD-provider-name");
+        const provider = providerElem ? providerElem.innerText : null;
+
+        const bookingAnchor = item.querySelector("a.oVHK-fclink");
+        const bookingLink = bookingAnchor ? bookingAnchor.href : null;
+
+        return {
+          time,
+          flightName,
+          stops,
+          duration,
+          price,
+          provider,
+          bookingLink,
+        };
+      });
+    });
+
+    const filtered = results.filter(
+      (f) => f.time && f.flightName && f.duration
+    );
+    flights.push(...filtered);
+    console.log(`\x1b[32mFound ${flights.length} flights\x1b[0m`);
+    console.log(flights);
+  } catch (error) {
+    console.error(
+      "\x1b[31mError scraping Kayak flights:\x1b[0m",
+      error.message
+    );
+  } finally {
+    await browser.close();
+  }
+
+  return flights;
 }
 
 module.exports = {
-  getAllTransportation
+  scrapeKayakFlights,
 };
