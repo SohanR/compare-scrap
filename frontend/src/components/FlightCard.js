@@ -6,6 +6,9 @@ import {
   Box,
   Button,
   CardMedia,
+  Divider,
+  Chip,
+  Link as MuiLink,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaPlane } from "react-icons/fa";
@@ -13,30 +16,23 @@ import { FaPlane } from "react-icons/fa";
 const FlightCard = ({ item }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
       <Card
         sx={{
           display: "flex",
-          mb: 2,
+          mb: 2.5,
           overflow: "hidden",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          borderRadius: "16px",
+          boxShadow: "0 6px 24px rgba(33,150,243,0.08)",
           position: "relative",
-          cursor: item.bookingLink ? "pointer" : "default",
-          "&:hover": {
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            transform: "translateY(-4px)",
-            transition: "all 0.3s ease",
-          },
+          background: "linear-gradient(90deg, #f5fafd 60%, #e3f2fd 100%)",
+          border: "1px solid #e3f2fd",
+          minHeight: 170,
         }}
-        onClick={() =>
-          item.bookingLink && window.open(item.bookingLink, "_blank")
-        }
       >
-        {/* Optional: Airline image placeholder */}
         <CardMedia
           component="div"
           sx={{
@@ -45,52 +41,60 @@ const FlightCard = ({ item }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "#f5f5f5",
+            bgcolor: "#e3f2fd",
+            borderRight: "1px solid #bbdefb",
           }}
         >
-          <FaPlane size={40} color="#2196F3" />
+          <FaPlane size={44} color="#2196F3" />
         </CardMedia>
         <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          <CardContent sx={{ flex: "1 0 auto", p: 3 }}>
+          <CardContent sx={{ flex: "1 0 auto", p: 3, pb: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Typography variant="h6" fontWeight="bold">
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: "#1976d2" }}
+              >
                 {item.flightName || "Unknown Airline"}
               </Typography>
               {item.stops && (
-                <Box
+                <Chip
+                  label={item.stops}
+                  size="small"
                   sx={{
                     ml: 2,
-                    bgcolor: "primary.light",
-                    color: "primary.main",
-                    px: 1.5,
-                    borderRadius: "8px",
-                    fontSize: "0.85rem",
+                    bgcolor: "#e3f2fd",
+                    color: "#1976d2",
+                    fontWeight: 500,
                   }}
-                >
-                  {item.stops}
-                </Box>
+                />
               )}
             </Box>
-            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", mb: 1 }}>
+            <Divider sx={{ mb: 1 }} />
+            <Box sx={{ display: "flex", gap: 4, flexWrap: "wrap", mb: 1 }}>
               <Box>
                 <Typography variant="body2" color="text.secondary">
                   Time
                 </Typography>
-                <Typography variant="body1">{item.time || "-"}</Typography>
+                <Typography variant="body1" fontWeight={500}>
+                  {item.time || "-"}
+                </Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="text.secondary">
                   Duration
                 </Typography>
-                <Typography variant="body1">{item.duration || "-"}</Typography>
+                <Typography variant="body1" fontWeight={500}>
+                  {item.duration || "-"}
+                </Typography>
               </Box>
-            </Box>
-            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", mb: 1 }}>
               <Box>
                 <Typography variant="body2" color="text.secondary">
                   Provider
                 </Typography>
-                <Typography variant="body1">{item.provider || "-"}</Typography>
+                <Typography variant="body1" fontWeight={500}>
+                  {item.provider || "-"}
+                </Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="text.secondary">
@@ -101,27 +105,47 @@ const FlightCard = ({ item }) => {
                 </Typography>
               </Box>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                href={item.bookingLink}
-                target="_blank"
-                disabled={!item.bookingLink}
-                sx={{
-                  borderRadius: "8px",
-                  textTransform: "none",
-                  background:
-                    "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-                  "&:hover": {
+            {/* Booking Link Button or Empty */}
+            {item.bookingLink ? (
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  href={item.bookingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    px: 3,
                     background:
-                      "linear-gradient(45deg, #1976D2 30%, #00B4D8 90%)",
-                  },
-                }}
-              >
-                Book Now
-              </Button>
-            </Box>
+                      "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+                    boxShadow: "0 2px 8px rgba(33,150,243,0.10)",
+                    "&:hover": {
+                      background:
+                        "linear-gradient(45deg, #1976D2 30%, #00B4D8 90%)",
+                    },
+                  }}
+                >
+                  Book Now
+                </Button>
+                <MuiLink
+                  href={item.bookingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="hover"
+                  sx={{
+                    ml: 2,
+                    alignSelf: "center",
+                    color: "#1976d2",
+                    fontWeight: 500,
+                  }}
+                >
+                  Visit Booking Site
+                </MuiLink>
+              </Box>
+            ) : null}
           </CardContent>
         </Box>
       </Card>
