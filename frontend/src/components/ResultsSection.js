@@ -5,7 +5,7 @@ import PlaceCard from "./PlaceCard"; // Import PlaceCard
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import FlightSearchTab from "./FlightSearchTab"; // Import the new FlightSearchTab component
+import FlightCard from "./FlightCard"; // Import FlightCard
 import FlightSearch from "./FlightSearch";
 
 const ResultsSection = ({
@@ -16,6 +16,54 @@ const ResultsSection = ({
   onTabChange,
 }) => {
   const renderContent = (Component, data) => {
+    if (Component === FlightCard) {
+      if (loading) {
+        return (
+          <Box sx={{ py: 4 }}>
+            {[1, 2, 3].map((i) => (
+              <Box key={i} sx={{ mb: 2 }}>
+                <Skeleton height={200} />
+              </Box>
+            ))}
+          </Box>
+        );
+      }
+      if (error) {
+        return (
+          <Box sx={{ textAlign: "center", py: 4, color: "error.main" }}>
+            <Typography variant="h6">{error}</Typography>
+          </Box>
+        );
+      }
+      if (!data || data.length === 0) {
+        return (
+          <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
+            <Typography variant="h6">No results found</Typography>
+            <Typography variant="body2">
+              Try adjusting your search criteria
+            </Typography>
+          </Box>
+        );
+      }
+      return (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Box sx={{ py: 4 }}>
+              {data.map((item, index) => (
+                <FlightCard key={index} item={item} />
+              ))}
+            </Box>
+          </motion.div>
+        </AnimatePresence>
+      );
+    }
+
     if (Component === FlightSearch) {
       // Always render FlightSearchTab directly for the Transportation tab
       return <FlightSearch />;
@@ -77,8 +125,8 @@ const ResultsSection = ({
   const tabData = [
     {
       label: "Transportation",
-      Component: FlightSearch, // Always render FlightSearchTab
-      data: null, // No need for data here
+      Component: FlightCard,
+      data: results?.transportation || [],
     },
     {
       label: "Hotels",
