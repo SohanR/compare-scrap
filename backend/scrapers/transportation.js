@@ -93,46 +93,39 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
           ".xdW8 .vmXl.vmXl-mod-variant-default"
         );
         const duration = durationElem ? durationElem.innerText.trim() : null;
-        // Price and booking link (robust)
+        // Price, booking link, provider (robust)
         let price = null;
         let bookingLink = null;
         let provider = null;
-        // Try main booking section first
-        const bookingSection = item.querySelector(".oVHK");
-        if (bookingSection) {
-          const bookingAnchor = bookingSection.querySelector("a.oVHK-fclink");
-          if (bookingAnchor) {
-            bookingLink = bookingAnchor.getAttribute("href");
+        // Find the first .e2GB-price-text in the card
+        const priceElem = item.querySelector(".e2GB-price-text");
+        if (priceElem) {
+          price = priceElem.innerText.replace(/\s/g, "");
+          // Find closest <a> ancestor for booking link
+          let parent = priceElem.parentElement;
+          while (parent && parent.tagName !== "A") {
+            parent = parent.parentElement;
+          }
+          if (parent && parent.tagName === "A") {
+            bookingLink = parent.getAttribute("href");
             if (bookingLink && bookingLink.startsWith("/")) {
               bookingLink = `https://www.kayak.com${bookingLink}`;
             }
-            const priceElem = bookingAnchor.querySelector(".e2GB-price-text");
-            price = priceElem ? priceElem.innerText.replace(/\s/g, "") : null;
-            const providerElem = item.querySelector(".M_JD-provider-name");
-            provider = providerElem ? providerElem.innerText : null;
           }
-        }
-        // Fallback: look for any .e2GB-price-text and get its closest <a>
-        if (!price || !bookingLink) {
-          const priceElem = item.querySelector(".e2GB-price-text");
-          if (priceElem) {
-            price = priceElem.innerText.replace(/\s/g, "");
-            // Find closest <a> ancestor
-            let parent = priceElem.parentElement;
-            while (parent && parent.tagName !== "A") {
-              parent = parent.parentElement;
-            }
-            if (parent && parent.tagName === "A") {
-              bookingLink = parent.getAttribute("href");
-              if (bookingLink && bookingLink.startsWith("/")) {
-                bookingLink = `https://www.kayak.com${bookingLink}`;
-              }
-            }
+          // Find provider in the same booking section
+          let providerElem = null;
+          let searchNode = priceElem;
+          // Search up to 5 levels up for provider
+          for (let i = 0; i < 5 && searchNode; i++) {
+            providerElem =
+              searchNode.querySelector?.(".M_JD-provider-name") || null;
+            if (providerElem) break;
+            searchNode = searchNode.parentElement;
           }
-        }
-        // Fallback: provider from booking button text
-        if (!provider) {
-          const providerElem = item.querySelector(".M_JD-provider-name");
+          if (!providerElem) {
+            // Try to find provider anywhere in the card
+            providerElem = item.querySelector(".M_JD-provider-name");
+          }
           provider = providerElem ? providerElem.innerText : null;
         }
         return {
