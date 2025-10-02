@@ -41,7 +41,7 @@ async function scrapeLonelyPlanetThingsToDo(to) {
 
     // Wait for the target elements to load
     try {
-      await page.waitForSelector("article.relative.flex.items-center", {
+      await page.waitForSelector("article.card-hover", {
         timeout: 20000,
       });
       console.log("\x1b[32mTarget elements found on the page.\x1b[0m");
@@ -53,21 +53,22 @@ async function scrapeLonelyPlanetThingsToDo(to) {
     }
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll(
-        "article.relative.flex.items-center"
-      );
-      return Array.from(items).map((item) => ({
-        name: item.querySelector("a.card-link span")?.innerText?.trim() || null,
-        description:
-          item.querySelector("p.text-black-400 span")?.innerText?.trim() ||
-          null,
-        imageUrl: item.querySelector("img")?.src || null,
-        link: item.querySelector("a.card-link")?.href
+      const items = document.querySelectorAll("article.card-hover");
+      return Array.from(items).map((item) => {
+        const name =
+          item.querySelector("a.card-link span")?.innerText?.trim() || null;
+        const imageUrl = item.querySelector("img")?.src || null;
+        const link = item.querySelector("a.card-link")?.getAttribute("href")
           ? `https://www.lonelyplanet.com${item
               .querySelector("a.card-link")
               .getAttribute("href")}`
-          : null,
-      }));
+          : null;
+        // For POIs, use the category as description fallback
+        const description =
+          item.querySelector("p.text-label.uppercase")?.innerText?.trim() ||
+          null;
+        return { name, description, imageUrl, link };
+      });
     });
 
     // console.log(
@@ -117,7 +118,7 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
 
     // Wait for the target elements to load
     try {
-      await page.waitForSelector("article.relative.flex.items-center", {
+      await page.waitForSelector("article.card-hover", {
         timeout: 20000,
       });
       console.log("\x1b[32mTarget elements found on the page.\x1b[0m");
@@ -129,20 +130,22 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
     }
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll(
-        "article.relative.flex.items-center"
-      );
-      return Array.from(items).map((item) => ({
-        name: item.querySelector("a.card-link span")?.innerText?.trim() || null,
-        description:
-          item.querySelector("p.line-clamp-2 span")?.innerText?.trim() || null,
-        imageUrl: item.querySelector("img")?.src || null,
-        link: item.querySelector("a.card-link")?.href
+      const items = document.querySelectorAll("article.card-hover");
+      return Array.from(items).map((item) => {
+        const name =
+          item.querySelector("a.card-link span")?.innerText?.trim() || null;
+        const imageUrl = item.querySelector("img")?.src || null;
+        const link = item.querySelector("a.card-link")?.getAttribute("href")
           ? `https://www.lonelyplanet.com${item
               .querySelector("a.card-link")
               .getAttribute("href")}`
-          : null,
-      }));
+          : null;
+        // For POIs, use the category as description fallback
+        const description =
+          item.querySelector("p.text-label.uppercase")?.innerText?.trim() ||
+          null;
+        return { name, description, imageUrl, link };
+      });
     });
 
     // console.log(
