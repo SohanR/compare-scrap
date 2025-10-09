@@ -7,7 +7,10 @@ const {
   scrapeLonelyPlanetThingsToDo,
   scrapeLonelyPlanetTipsAndStories,
 } = require("./scrapers/lonelyPlanet");
-const { scrapeKayakFlights } = require("./scrapers/transportation");
+const {
+  scrapeKayakFlights,
+  scrapeKayakFlightsTwoWay,
+} = require("./scrapers/transportation");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,13 +48,14 @@ function setCache(type, params, data) {
 
 // API Routes
 app.post("/api/search", async (req, res) => {
-  // const { from, to, date } = req.body;
   console.log("request body", req.body);
   const from = req.body.from.city;
   const to = req.body.to.city;
   const date = req.body.date;
   const fromIata = req.body.from.iata;
   const toIata = req.body.to.iata;
+  const returnDate = req.body.returnDate;
+  const tripType = req.body.tripType;
 
   if (!from || !to || !date) {
     return res.status(400).json({
@@ -61,36 +65,59 @@ app.post("/api/search", async (req, res) => {
 
   try {
     // Check cache first
-    const cacheKey = `search:${from}-${to}-${date}`;
-    const cachedResults = getFromCache("search", { from, to, date });
+    const cacheKey = `search:${from}-${to}-${date}-${returnDate || ""}-${
+      tripType || ""
+    }`;
+    const cachedResults = getFromCache("search", {
+      from,
+      to,
+      date,
+      returnDate,
+      tripType,
+    });
 
     if (cachedResults) {
-      // console.log("\x1b[32mReturning cached results\x1b[0m");
       return res.json(cachedResults);
     }
 
-    console.log(`Searching for: From=${from}, To=${to}, Date=${date}`);
+    console.log(
+      `Searching for: From=${from}, To=${to}, Date=${date}, ReturnDate=${returnDate}, TripType=${tripType}`
+    );
 
-    // Fetch all data concurrently
-    const [transportation, hotels, touristPlaces, tipsAndStories] =
-      await Promise.all([
-        scrapeKayakFlights(fromIata, toIata, date).catch((err) => {
+    let transportation;
+    if (tripType === "twoway" && returnDate) {
+      transportation = await scrapeKayakFlightsTwoWay(
+        fromIata,
+        toIata,
+        date,
+        returnDate
+      ).catch((err) => {
+        console.error("Transportation error:", err);
+        return [];
+      });
+    } else {
+      transportation = await scrapeKayakFlights(fromIata, toIata, date).catch(
+        (err) => {
           console.error("Transportation error:", err);
           return [];
-        }),
-        scrapeHotels(to, date, date).catch((err) => {
-          console.error("Hotels error:", err);
-          return [];
-        }),
-        scrapeLonelyPlanetThingsToDo(to).catch((err) => {
-          console.error("Things to Do error:", err);
-          return [];
-        }),
-        scrapeLonelyPlanetTipsAndStories(to).catch((err) => {
-          console.error("Tips & Stories error:", err);
-          return [];
-        }),
-      ]);
+        }
+      );
+    }
+
+    const [hotels, touristPlaces, tipsAndStories] = await Promise.all([
+      scrapeHotels(to, date, date).catch((err) => {
+        console.error("Hotels error:", err);
+        return [];
+      }),
+      scrapeLonelyPlanetThingsToDo(to).catch((err) => {
+        console.error("Things to Do error:", err);
+        return [];
+      }),
+      scrapeLonelyPlanetTipsAndStories(to).catch((err) => {
+        console.error("Tips & Stories error:", err);
+        return [];
+      }),
+    ]);
 
     console.log(
       `\x1b[32mFound ${transportation?.length || 0} Transportation\x1b[0m`
@@ -103,19 +130,16 @@ app.post("/api/search", async (req, res) => {
       `\x1b[32mFound ${tipsAndStories?.length || 0} tips and stories\x1b[0m`
     );
 
-    // Construct the results object
     const results = {
-      transportation: transportation || [], // Ensure transportation is an array
-      hotels: hotels || [], // Ensure hotels is an array
-      todo: touristPlaces || [], // Ensure touristPlaces is an array
-      tipsAndStories: tipsAndStories || [], // Ensure tipsAndStories is an array
+      transportation: transportation || [],
+      hotels: hotels || [],
+      todo: touristPlaces || [],
+      tipsAndStories: tipsAndStories || [],
     };
 
-    // Cache the results
-    setCache("search", { from, to, date }, results);
+    setCache("search", { from, to, date, returnDate, tripType }, results);
 
-    // Send the response
-    return res.json(results); // Ensure the response is sent
+    return res.json(results);
   } catch (error) {
     console.error("\x1b[31mSearch error:\x1b[0m", error);
     res.status(500).json({
