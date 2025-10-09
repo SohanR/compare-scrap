@@ -65,7 +65,7 @@ app.post("/api/search", async (req, res) => {
     const cachedResults = getFromCache("search", { from, to, date });
 
     if (cachedResults) {
-      console.log("\x1b[32mReturning cached results\x1b[0m");
+      // console.log("\x1b[32mReturning cached results\x1b[0m");
       return res.json(cachedResults);
     }
 
