@@ -39,13 +39,31 @@ const FlightCard = ({ item }) => {
             width: 120,
             minWidth: 120,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             bgcolor: "#e3f2fd",
             borderRight: "1px solid #bbdefb",
+            py: 2,
           }}
         >
-          <FaPlane size={44} color="#2196F3" />
+          {item.airlineLogos && item.airlineLogos.length > 0 ? (
+            <img
+              src={item.airlineLogos[0]}
+              alt="Airline Logo"
+              style={{
+                width: 64,
+                height: 48,
+                objectFit: "contain",
+                marginBottom: 8,
+              }}
+            />
+          ) : (
+            <FaPlane size={44} color="#2196F3" />
+          )}
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {item.airlinePath || "-"}
+          </Typography>
         </CardMedia>
         <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <CardContent sx={{ flex: "1 0 auto", p: 3, pb: 2, height: "100%" }}>
