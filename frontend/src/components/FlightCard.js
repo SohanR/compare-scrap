@@ -125,14 +125,17 @@ const FlightCard = ({ item }) => {
                     </Typography>
                   </Box>
                 </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Provider
-                  </Typography>
-                  <Typography variant="body1" fontWeight={500}>
-                    {item.provider || "-"}
-                  </Typography>
-                </Box>
+                {/* Provider: only show if not null */}
+                {item.provider ? (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Provider
+                    </Typography>
+                    <Typography variant="body1" fontWeight={500}>
+                      {item.provider}
+                    </Typography>
+                  </Box>
+                ) : null}
               </Box>
               {/* Right: Price and Booking */}
               <Box
