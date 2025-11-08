@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 const { scrapeHotels } = require("./scrapers/hotelScrapper");
 const {
@@ -11,6 +12,7 @@ const {
   scrapeKayakFlights,
   scrapeKayakFlightsTwoWay,
 } = require("./scrapers/transportation");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +47,22 @@ function setCache(type, params, data) {
     data,
   });
 }
+
+// --- MongoDB setup ---
+const mongoUri =
+  "mongodb+srv://scrape:travelgo132@cluster0.hexmrb0.mongodb.net/travelgo?retryWrites=true&w=majority&appName=Cluster0";
+
+mongoose
+  .connect(mongoUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("connected to Database successfully");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
 // API Routes
 app.post("/api/search", async (req, res) => {
@@ -154,6 +172,8 @@ app.post("/api/search", async (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
