@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaPlane } from "react-icons/fa";
+import BookmarkButton from "./BookmarkButton";
 
 const FlightCard = ({ item }) => {
   return (
@@ -20,6 +21,8 @@ const FlightCard = ({ item }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {/* ToastContainer for bookmark notifications */}
+      <BookmarkButton withToastContainer={true} sx={{ display: "none" }} />
       <Card
         sx={{
           display: "flex",
@@ -33,6 +36,20 @@ const FlightCard = ({ item }) => {
           minHeight: 170,
         }}
       >
+        {/* Bookmark Button - top right overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 2,
+            bgcolor: "rgba(255,255,255,0.85)",
+            borderRadius: "50%",
+            boxShadow: 1,
+          }}
+        >
+          <BookmarkButton />
+        </Box>
         <CardMedia
           component="div"
           sx={{

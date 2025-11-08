@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
+import BookmarkButton from "./BookmarkButton";
 
 const PlaceCard = ({ place }) => {
   return (
@@ -9,6 +10,8 @@ const PlaceCard = ({ place }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {/* ToastContainer for bookmark notifications */}
+      <BookmarkButton withToastContainer={true} sx={{ display: "none" }} />
       <Card
         sx={{
           display: "flex",
@@ -17,16 +20,7 @@ const PlaceCard = ({ place }) => {
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           cursor: "pointer",
-          position: "relative", // For positioning the hover message
-          "&:hover": {
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            transform: "translateY(-4px)",
-            transition: "all 0.3s ease",
-          },
-          "&:hover .hover-message": {
-            opacity: 1,
-            visibility: "visible",
-          },
+          position: "relative",
         }}
         onClick={() => window.open(place.link, "_blank")}
       >
@@ -66,6 +60,22 @@ const PlaceCard = ({ place }) => {
           }}
         >
           Click here to read more
+        </Box>
+
+        {/* Bookmark Button - top right overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 2,
+            bgcolor: "rgba(255,255,255,0.85)",
+            borderRadius: "50%",
+            boxShadow: 1,
+          }}
+          onClick={(e) => e.stopPropagation()} // Prevent card click when bookmarking
+        >
+          <BookmarkButton />
         </Box>
       </Card>
     </motion.div>

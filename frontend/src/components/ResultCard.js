@@ -19,6 +19,7 @@ import {
   FaBus,
   FaPlane,
 } from "react-icons/fa";
+import BookmarkButton from "./BookmarkButton";
 
 const amenityIcons = {
   WiFi: FaWifi,
@@ -46,6 +47,9 @@ const ResultCard = ({ item, type }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {/* ToastContainer for bookmark notifications */}
+      {/* Only render once per card to avoid duplicates */}
+      <BookmarkButton withToastContainer={true} sx={{ display: "none" }} />
       <Card
         sx={{
           display: "flex",
@@ -53,6 +57,7 @@ const ResultCard = ({ item, type }) => {
           overflow: "hidden",
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          position: "relative", // for bookmark overlay
           "&:hover": {
             boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
             transform: "translateY(-4px)",
@@ -60,6 +65,21 @@ const ResultCard = ({ item, type }) => {
           },
         }}
       >
+        {/* Bookmark Button - top right overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 2,
+            bgcolor: "rgba(255,255,255,0.85)",
+            borderRadius: "50%",
+            boxShadow: 1,
+          }}
+        >
+          <BookmarkButton />
+        </Box>
+
         <CardMedia
           component="img"
           sx={{ width: 200, objectFit: "cover" }}

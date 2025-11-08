@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +9,18 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Login API
+export async function loginUser({ email, password }) {
+  const res = await api.post("/auth/login", { email, password });
+  return res.data;
+}
+
+// Signup API
+export async function signupUser({ name, email, password }) {
+  const res = await api.post("/auth/signup", { name, email, password });
+  return res.data;
+}
 
 export const searchTravel = async (searchParams) => {
   try {

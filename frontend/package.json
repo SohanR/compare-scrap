@@ -21,6 +21,7 @@
     "react-loading-skeleton": "^3.3.1",
     "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5",
     "swiper": "^11.0.4"
   },
   "scripts": {
@@ -46,5 +47,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "proxy": "http://localhost:5000"
 }
