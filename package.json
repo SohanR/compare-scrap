@@ -1,0 +1,11 @@
+{
+    "name": "compare-scrap",
+    "version": "1.0.0",
+    "private": true,
+    "devDependencies": {
+        "concurrently": "^8.2.0"
+    },
+    "scripts": {
+        "start": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+    }
+}
