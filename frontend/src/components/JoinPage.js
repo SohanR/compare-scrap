@@ -14,11 +14,13 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../utils/api";
+import useAuthStore from "../store/authStore";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const JoinPage = () => {
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -40,6 +42,7 @@ const JoinPage = () => {
     if (!validate()) return;
     try {
       const res = await loginUser({ email, password });
+      login(res.token, res.user); // Store token and user in zustand
       toast.success("Login successful!");
       setTimeout(() => navigate("/"), 1200); // redirect after toast
     } catch (err) {

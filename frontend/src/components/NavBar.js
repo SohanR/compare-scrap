@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -6,13 +6,46 @@ import {
   Button,
   Box,
   Avatar,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-import { NavLink } from "react-router-dom";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import { NavLink, useNavigate } from "react-router-dom";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import useAuthStore from "../store/authStore";
 
 const NavBar = () => {
+  const navigate = useNavigate();
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleMenuClose();
+    navigate("/");
+  };
+
+  const handleProfileClick = () => {
+    handleMenuClose();
+    navigate(`/profile/${user?.id}`);
+  };
+
+  const handleSettingsClick = () => {
+    handleMenuClose();
+    navigate("/settings");
+  };
+
   return (
     <AppBar
       position="sticky"
@@ -29,18 +62,6 @@ const NavBar = () => {
           <Button
             component={NavLink}
             to="/"
-            startIcon={
-              <Avatar
-                sx={{
-                  bgcolor: "linear-gradient(45deg,#6EE7B7,#3B82F6)",
-                  width: 36,
-                  height: 36,
-                  fontSize: 14,
-                }}
-              >
-                🌍
-              </Avatar>
-            }
             sx={{
               color: "text.primary",
               textTransform: "none",
@@ -48,7 +69,7 @@ const NavBar = () => {
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
-              TravelGo
+              🌍 TravelGo
             </Typography>
           </Button>
         </Box>
@@ -58,7 +79,9 @@ const NavBar = () => {
           <Button
             component={NavLink}
             to="/search"
-            startIcon={<RocketLaunchIcon sx={{ transform: "translateY(-1px)" }} />}
+            startIcon={
+              <RocketLaunchIcon sx={{ transform: "translateY(-1px)" }} />
+            }
             variant="contained"
             color="primary"
             sx={{
@@ -74,22 +97,50 @@ const NavBar = () => {
           </Button>
         </Box>
 
-        {/* right: join/login */}
+        {/* right: join/login or user dropdown */}
         <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            component={NavLink}
-            to="/join"
-            startIcon={<PersonAddAlt1Icon />}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              borderColor: "rgba(16,24,40,0.08)",
-              color: "text.primary",
-              fontWeight: 600,
-            }}
-          >
-            Join
-          </Button>
+          {isLoggedIn ? (
+            <>
+              <Button
+                onClick={handleMenuOpen}
+                endIcon={<KeyboardArrowDownIcon />}
+                sx={{
+                  textTransform: "none",
+                  color: "text.primary",
+                  fontWeight: 600,
+                  "&:hover": { bgcolor: "rgba(0,0,0,0.04)" },
+                }}
+              >
+                Hi, {user?.name}
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+              >
+                <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
+                <MenuItem onClick={handleSettingsClick}>Settings</MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button
+              component={NavLink}
+              to="/join"
+              startIcon={<PersonAddAlt1Icon />}
+              variant="outlined"
+              sx={{
+                textTransform: "none",
+                borderColor: "rgba(16,24,40,0.08)",
+                color: "text.primary",
+                fontWeight: 600,
+              }}
+            >
+              Join
+            </Button>
+          )}
         </Box>
       </Toolbar>
     </AppBar>
