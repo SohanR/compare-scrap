@@ -139,7 +139,7 @@ const ResultsSection = ({
       data: results?.todo || [],
     },
     {
-      label: "Tips & Stories",
+      label: "Blogs & Articles",
       Component: PlaceCard,
       data: results?.tipsAndStories || [],
     },
