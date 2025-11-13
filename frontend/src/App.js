@@ -18,6 +18,8 @@ import JoinPage from "./components/JoinPage";
 import SignupPage from "./components/SignupPage";
 import ProfilePage from "./components/ProfilePage";
 import SettingsPage from "./components/SettingsPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AuthRoute from "./components/AuthRoute";
 
 function App() {
   const [results, setResults] = useState(null);
@@ -104,10 +106,42 @@ function App() {
           }
         />
         <Route path="/flights" element={<FlightSearch />} />
-        <Route path="/join" element={<JoinPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/profile/:id" element={<ProfilePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+
+        {/* auth-only pages: redirect to home if already logged in */}
+        <Route
+          path="/join"
+          element={
+            <AuthRoute>
+              <JoinPage />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <AuthRoute>
+              <SignupPage />
+            </AuthRoute>
+          }
+        />
+
+        {/* protected pages: redirect to /join if not logged in */}
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );
