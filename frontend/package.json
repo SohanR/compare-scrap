@@ -22,7 +22,8 @@
     "react-router-dom": "^7.6.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
-    "swiper": "^11.0.4"
+    "swiper": "^11.0.4",
+    "zustand": "^4.5.7"
   },
   "scripts": {
     "start": "react-scripts start",

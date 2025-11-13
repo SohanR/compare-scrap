@@ -16,6 +16,8 @@ import FlightSearch from "./components/FlightSearch";
 import NavBar from "./components/NavBar";
 import JoinPage from "./components/JoinPage";
 import SignupPage from "./components/SignupPage";
+import ProfilePage from "./components/ProfilePage";
+import SettingsPage from "./components/SettingsPage";
 
 function App() {
   const [results, setResults] = useState(null);
@@ -104,6 +106,8 @@ function App() {
         <Route path="/flights" element={<FlightSearch />} />
         <Route path="/join" element={<JoinPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </>
   );
