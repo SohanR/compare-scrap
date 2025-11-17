@@ -47,11 +47,15 @@ function App() {
   });
   const [activeTab, setActiveTab] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleSearch = async (searchData) => {
+    // Set searching state
+    setIsSearching(true);
+
     // Reset state
     setResults({
       transportation: [],
@@ -148,6 +152,10 @@ function App() {
       .catch((err) => {
         setError((prev) => ({ ...prev, tipsAndStories: err.message }));
         setLoading((prev) => ({ ...prev, tipsAndStories: false }));
+      })
+      .finally(() => {
+        // All APIs completed, re-enable search button
+        setIsSearching(false);
       });
   };
 
@@ -188,7 +196,10 @@ function App() {
                       Find Your Perfect Travel Deals
                     </Typography>
 
-                    <SearchForm onSearch={handleSearch} />
+                    <SearchForm
+                      onSearch={handleSearch}
+                      isSearching={isSearching}
+                    />
 
                     {showResults && (
                       <Box id="results-section" sx={{ mt: 4 }}>

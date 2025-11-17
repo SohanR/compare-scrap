@@ -78,7 +78,7 @@ const suggestionStyles = {
   },
 };
 
-const SearchForm = ({ onSearch }) => {
+const SearchForm = ({ onSearch, isSearching }) => {
   const [from, setFrom] = useState("");
   const [fromObj, setFromObj] = useState(null);
   const [fromSuggestions, setFromSuggestions] = useState([]);
@@ -88,7 +88,6 @@ const SearchForm = ({ onSearch }) => {
   const [date, setDate] = useState(new Date());
   const [tripType, setTripType] = useState("oneway");
   const [returnDate, setReturnDate] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const handleTripType = (event, newType) => {
     if (newType) setTripType(newType);
@@ -367,7 +366,7 @@ const SearchForm = ({ onSearch }) => {
               variant="contained"
               type="submit"
               size="large"
-              disabled={loading}
+              disabled={isSearching}
               sx={{
                 py: 1.5,
                 background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
@@ -375,9 +374,14 @@ const SearchForm = ({ onSearch }) => {
                   background:
                     "linear-gradient(45deg, #1976D2 30%, #00B4D8 90%)",
                 },
+                "&:disabled": {
+                  background:
+                    "linear-gradient(45deg, #90caf9 30%, #81d4fa 90%)",
+                  cursor: "not-allowed",
+                },
               }}
             >
-              {loading ? "Searching..." : "Search"}
+              {isSearching ? "Scraping Data..." : "Search"}
             </Button>
           </Stack>
         </form>

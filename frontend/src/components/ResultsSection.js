@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Tabs, Tab, CircularProgress } from "@mui/material";
 import ResultCard from "./ResultCard";
 import PlaceCard from "./PlaceCard";
@@ -14,14 +14,38 @@ const ResultsSection = ({
   activeTab,
   onTabChange,
 }) => {
+  const [messageIndex, setMessageIndex] = useState(0);
+  const messages = [
+    "Please wait, we are scraping data",
+    "Scraping data takes long time sometimes",
+  ];
+
+  useEffect(() => {
+    const isAnyLoading = Object.values(loading).some((l) => l === true);
+    if (isAnyLoading) {
+      const interval = setInterval(() => {
+        setMessageIndex((prev) => (prev + 1) % messages.length);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [loading, messages.length]);
+
+  const renderLoadingState = () => (
+    <Box className="loading-container">
+      <Box className="loading-spinner">
+        <CircularProgress size={48} thickness={4} />
+      </Box>
+      <Box className="loading-messages">
+        <Typography className={`loading-message blinking-text`}>
+          {messages[messageIndex]}
+        </Typography>
+      </Box>
+    </Box>
+  );
+
   const renderContent = (Component, data, isLoading, isError) => {
     if (isLoading) {
-      return (
-        <Box sx={{ py: 4, display: "flex", alignItems: "center", gap: 2 }}>
-          <CircularProgress size={24} />
-          <Typography color="text.secondary">Loading...</Typography>
-        </Box>
-      );
+      return renderLoadingState();
     }
 
     if (isError) {
