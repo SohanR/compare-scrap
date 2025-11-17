@@ -20,9 +20,7 @@ async function setupBrowser() {
 
 async function scrapeKayakFlights(from, to, date, attempt = 1) {
   const url = `https://booking.kayak.com/flights/${from}-${to}/${date}?sort=price_a`;
-  console.log(
-    `\x1b[34mNavigating to Kayak URL (Attempt ${attempt}):\x1b[0m ${url}`
-  );
+  console.log(`   🌐 [NAV] ${url}`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -36,181 +34,247 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
 
   try {
     await page.goto(url, { waitUntil: "networkidle2", timeout: 90000 });
+    console.log(`   ✓ [PAGE] Content loaded successfully`);
 
     // Scroll to trigger lazy loading
-    for (let i = 0; i < 8; i++) {
+    console.log(`   ⏳ [SCROLL] Starting lazy load scrolling...`);
+    for (let i = 0; i < 5; i++) {
       await page.evaluate(() => {
         window.scrollBy(0, window.innerHeight);
       });
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1500);
+      console.log(`   ⏳ [SCROLL] Scroll ${i + 1}/5 complete`);
     }
 
-    // Wait for price elements to appear
-    await page.waitForSelector(".e2GB-price-text", { timeout: 60000 });
-
-    // Dismiss all possible popups
-    try {
-      await page.waitForTimeout(4000);
-      const closeBtns = await page.$x(
-        "//button[contains(@aria-label, 'Close') or contains(@aria-label, 'close') or contains(text(), 'No thanks') or contains(text(), 'Dismiss')]"
-      );
-      for (const btn of closeBtns) {
-        await btn.click();
-        await page.waitForTimeout(1000);
-      }
-    } catch (err) {}
-
-    // Wait for flight results to appear
+    // Wait for flight results container
+    console.log(`   ⏳ [WAIT] Waiting for flight items...`);
     await page.waitForFunction(
       () => {
-        return (
-          document.querySelectorAll("ol.hJSA-list li.hJSA-item").length > 0
-        );
+        const items = document.querySelectorAll("li.hJSA-item");
+        return items.length > 0;
       },
       { timeout: 90000 }
     );
+    console.log(`   ✓ [DATA] Flight results found on page`);
+
+    // Check how many items exist
+    const itemCount = await page.evaluate(() => {
+      return document.querySelectorAll("li.hJSA-item").length;
+    });
+    console.log(`   📊 [COUNT] Total items found: ${itemCount}`);
+
+    // Dismiss popups if any
+    try {
+      const closeBtns = await page.$x(
+        "//button[contains(@aria-label, 'Close') or contains(@aria-label, 'close')]"
+      );
+      console.log(`   🗑️  [POPUP] Found ${closeBtns.length} close buttons`);
+      for (const btn of closeBtns) {
+        await btn.click().catch(() => {});
+        await page.waitForTimeout(500);
+      }
+    } catch (err) {
+      console.log(`   ℹ️  [POPUP] No popups to dismiss`);
+    }
+
+    // Test extraction with first item
+    console.log(`   🔍 [TEST] Testing extraction with first item...`);
+    const testResult = await page.evaluate(() => {
+      const firstItem = document.querySelector("li.hJSA-item");
+      if (!firstItem) return { error: "No items found" };
+
+      return {
+        hasVY2U: !!firstItem.querySelector(".VY2U"),
+        hasJWEO: !!firstItem.querySelector(".JWEO"),
+        hasXdW8: !!firstItem.querySelector(".xdW8"),
+        hasPrice: !!firstItem.querySelector(".e2GB-price-text"),
+        hasPriceContainer: !!firstItem.querySelector(".e2GB"),
+        hasBookingLink: !!firstItem.querySelector(".oVHK-fclink"),
+        hasBookingAnchor: !!firstItem.querySelector(".oVHK a"),
+        hasAirports: firstItem.querySelectorAll(".jLhY-airport-info span")
+          .length,
+        timeText: firstItem.querySelector(".VY2U .vmXl")?.innerText,
+        flightName: firstItem.querySelector(".VY2U .c_cgF")?.innerText,
+        duration: firstItem.querySelector(".xdW8 .vmXl")?.innerText,
+        price: firstItem.querySelector(".e2GB-price-text")?.innerText,
+        priceInContainer: firstItem.querySelector(".e2GB")?.innerText,
+        bookingHref:
+          firstItem.querySelector(".oVHK-fclink")?.getAttribute("href") ||
+          firstItem.querySelector(".oVHK a")?.getAttribute("href"),
+      };
+    });
+    console.log(`   🔍 [TEST] First item extraction result:`, testResult);
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll("ol.hJSA-list li.hJSA-item");
-      return Array.from(items).map((item) => {
-        // Airline logos (array)
-        const airlineLogoNodes = item.querySelectorAll(
-          ".c5iUd-leg-carrier img"
-        );
-        const airlineLogos = Array.from(airlineLogoNodes).map((img) => img.src);
-        // From/To IATA
-        const airportSpans = item.querySelectorAll(".jLhY-airport-info span");
-        const fromIata = airportSpans[0]?.innerText || null;
-        const toIata = airportSpans[1]?.innerText || null;
-        const airlinePath =
-          fromIata && toIata ? `${fromIata} → ${toIata}` : null;
-        // Time
-        const timeElem = item.querySelector(".vmXl.vmXl-mod-variant-large");
-        const time = timeElem
-          ? Array.from(timeElem.querySelectorAll("span"))
-              .map((s) => s.innerText)
-              .join(" ")
-          : null;
-        // Flight name (first .c_cgF after time block)
-        const cgfElems = item.querySelectorAll(
-          ".c_cgF.c_cgF-mod-variant-default.c_cgF-mod-theme-foreground-neutral"
-        );
-        const flightName = cgfElems[0]?.innerText || null;
-        // Stops
-        const stopsElem = item.querySelector(".JWEO-stops-text");
-        const stops = stopsElem ? stopsElem.innerText.trim() : null;
-        // Duration
-        const durationElem = item.querySelector(
-          ".xdW8 .vmXl.vmXl-mod-variant-default"
-        );
-        const duration = durationElem ? durationElem.innerText.trim() : null;
-        // Price, booking link, provider (robust)
-        let price = null;
-        let bookingLink = null;
-        let provider = null;
-        // Try all .e2GB-price-text in the card
-        const priceElems = item.querySelectorAll(".e2GB-price-text");
-        for (let i = 0; i < priceElems.length; i++) {
-          const priceElem = priceElems[i];
-          const thisPrice = priceElem.innerText.replace(/\s/g, "");
-          let parent = priceElem.parentElement;
-          while (parent && parent.tagName !== "A") {
-            parent = parent.parentElement;
+      const items = document.querySelectorAll("li.hJSA-item");
+
+      return Array.from(items).map((item, idx) => {
+        try {
+          // Time
+          const timeContainer = item.querySelector(".VY2U .vmXl");
+          let time = null;
+          if (timeContainer) {
+            const timeText = timeContainer.innerText?.trim() || "";
+            time = timeText || null;
           }
-          let thisBookingLink = null;
-          if (parent && parent.tagName === "A") {
-            thisBookingLink = parent.getAttribute("href");
-            if (thisBookingLink && thisBookingLink.startsWith("/")) {
-              thisBookingLink = `https://www.kayak.com${thisBookingLink}`;
-            }
+
+          // Flight name
+          const flightNameElem = item.querySelector(
+            ".VY2U .c_cgF.c_cgF-mod-variant-default"
+          );
+          const flightName = flightNameElem?.innerText?.trim() || null;
+
+          // Stops
+          const stopsElem = item.querySelector(
+            ".JWEO .vmXl.vmXl-mod-variant-default span"
+          );
+          const stops = stopsElem?.innerText?.trim() || null;
+
+          // Duration
+          const durationElem = item.querySelector(
+            ".xdW8 .vmXl.vmXl-mod-variant-default"
+          );
+          const duration = durationElem?.innerText?.trim() || null;
+
+          // Airport codes
+          const airportInfos = item.querySelectorAll(".jLhY-airport-info span");
+          const fromIata =
+            airportInfos[0]?.innerText?.trim() ||
+            airportInfos[0]?.textContent?.trim() ||
+            null;
+          const toIata =
+            airportInfos[1]?.innerText?.trim() ||
+            airportInfos[1]?.textContent?.trim() ||
+            null;
+          const airlinePath =
+            fromIata && toIata ? `${fromIata} → ${toIata}` : null;
+
+          // Airline logos
+          const airlineLogoNodes = item.querySelectorAll(
+            ".c5iUd-leg-carrier img"
+          );
+          const airlineLogos = Array.from(airlineLogoNodes).map(
+            (img) => img.src
+          );
+
+          // IMPORTANT: Price and booking link are in SIBLING element, not child!
+          // Navigate up to parent container and find the price section
+          let price = null;
+          let bookingLink = null;
+          let provider = null;
+
+          // Get the parent container that holds both item and price section
+          let parentContainer = item.closest(".nrc6");
+          if (!parentContainer) {
+            parentContainer = item.closest("[data-resultid]");
           }
-          let providerElem = null;
-          let searchNode = priceElem;
-          for (let j = 0; j < 5 && searchNode; j++) {
-            providerElem =
-              searchNode.querySelector?.(".M_JD-provider-name") || null;
-            if (providerElem) break;
-            searchNode = searchNode.parentElement;
+          if (!parentContainer) {
+            parentContainer = item.parentElement?.parentElement?.parentElement;
           }
-          if (!providerElem) {
-            providerElem = item.querySelector(".M_JD-provider-name");
-          }
-          let thisProvider = providerElem ? providerElem.innerText : null;
-          if (thisPrice && thisBookingLink) {
-            price = thisPrice;
-            bookingLink = thisBookingLink;
-            provider = thisProvider;
-            break;
-          }
-        }
-        // If not found, check for price in sibling .nrc6-price-section
-        if (!price || !bookingLink) {
-          let priceSection = item
-            .closest(".hJSA-item")
-            ?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.querySelector(
+
+          if (parentContainer) {
+            // Look for price section within the parent
+            const priceSection = parentContainer.querySelector(
               ".nrc6-price-section"
             );
-          if (!priceSection) {
-            priceSection =
-              item.parentElement?.parentElement?.parentElement?.parentElement
-                ?.parentElement?.nextElementSibling;
-          }
-          if (priceSection) {
-            const bookingAnchors = priceSection.querySelectorAll(
-              ".oVHK a.oVHK-fclink, .oVHK a"
-            );
-            for (let a = 0; a < bookingAnchors.length; a++) {
-              const anchor = bookingAnchors[a];
-              const priceElem = anchor.querySelector(".e2GB-price-text");
+            if (priceSection) {
+              // Get price from e2GB-price-text
+              const priceElem = priceSection.querySelector(".e2GB-price-text");
               if (priceElem) {
-                price = priceElem.innerText.replace(/\s/g, "");
-                bookingLink = anchor.getAttribute("href");
+                price = priceElem.innerText?.trim() || null;
+              }
+
+              // Get booking link from oVHK-fclink
+              const bookingAnchor = priceSection.querySelector(".oVHK-fclink");
+              if (bookingAnchor) {
+                bookingLink = bookingAnchor.getAttribute("href") || null;
                 if (bookingLink && bookingLink.startsWith("/")) {
                   bookingLink = `https://www.kayak.com${bookingLink}`;
                 }
-                const providerElem = priceSection.querySelector(
-                  ".M_JD-provider-name"
-                );
-                provider = providerElem ? providerElem.innerText : null;
-                break;
               }
+
+              // Get provider from DOum-name
+              const providerElem = priceSection.querySelector(".DOum-name");
+              provider = providerElem?.innerText?.trim() || flightName;
             }
           }
+
+          // Fallback: try regex extraction if direct selectors fail
+          if (!price && parentContainer) {
+            const allText = parentContainer.innerText;
+            const priceMatch = allText.match(/\$[\d,]+/);
+            if (priceMatch) {
+              price = priceMatch[0];
+            }
+          }
+
+          return {
+            time,
+            flightName,
+            stops,
+            duration,
+            price,
+            provider,
+            bookingLink,
+            airlineLogos,
+            airlinePath,
+            fromIata,
+            toIata,
+          };
+        } catch (e) {
+          return null;
         }
-        if (!provider) {
-          const providerElem = item.querySelector(".M_JD-provider-name");
-          provider = providerElem ? providerElem.innerText : null;
-        }
-        return {
-          time,
-          flightName,
-          stops,
-          duration,
-          price,
-          provider,
-          bookingLink,
-          airlineLogos,
-          airlinePath,
-          fromIata,
-          toIata,
-        };
       });
     });
-    console.log("Kayak raw results:", results);
+
+    console.log(`   📦 [EXTRACT] Extracted ${results.length} total items`);
+    console.log(
+      `   📦 [EXTRACT] First 3 items:`,
+      JSON.stringify(results.slice(0, 3), null, 2)
+    );
 
     const filtered = results.filter(
-      (f) => f.time && f.flightName && f.duration
+      (f) =>
+        f &&
+        f.time &&
+        f.flightName &&
+        f.duration &&
+        f.price &&
+        f.fromIata &&
+        f.toIata
     );
+
+    console.log(
+      `   ✅ [FILTER] Filtered: ${results.length} → ${filtered.length} valid items`
+    );
+
+    const invalidItems = results.filter(
+      (f) =>
+        !f ||
+        !f.time ||
+        !f.flightName ||
+        !f.duration ||
+        !f.price ||
+        !f.fromIata ||
+        !f.toIata
+    );
+    if (invalidItems.length > 0) {
+      console.log(
+        `   ⚠️  [FILTER] Invalid items (first 3):`,
+        JSON.stringify(invalidItems.slice(0, 3), null, 2)
+      );
+    }
+
     flights.push(...filtered);
-    console.log(`\x1b[32mFound ${flights.length} flights\x1b[0m`);
-    console.log(flights);
+    console.log(`   ✅ [FINAL] Total flights: ${flights.length}`);
   } catch (error) {
     console.error(
-      `\x1b[31mError scraping Kayak flights (Attempt ${attempt}):\x1b[0m`,
+      `   ❌ [ERROR] Kayak scraping failed (Attempt ${attempt}):`,
       error.message
     );
+    console.error(`   ❌ [ERROR] Stack trace:`, error.stack);
     if (attempt < 3) {
-      // Retry up to 3 times with a delay
+      console.log(`   🔄 [RETRY] Retrying in 5 seconds...`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
       await browser.close();
       return scrapeKayakFlights(from, to, date, attempt + 1);
@@ -230,9 +294,7 @@ async function scrapeKayakFlightsTwoWay(
   attempt = 1
 ) {
   const url = `https://booking.kayak.com/flights/${from}-${to}/${departDate}/${returnDate}?sort=price_a`;
-  console.log(
-    `\x1b[34mNavigating to Kayak Two-Way URL (Attempt ${attempt}):\x1b[0m ${url}`
-  );
+  console.log(`   🌐 [NAV] ${url}`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -246,157 +308,208 @@ async function scrapeKayakFlightsTwoWay(
 
   try {
     await page.goto(url, { waitUntil: "networkidle2", timeout: 90000 });
+    console.log(`   ✓ [PAGE] Content loaded successfully`);
 
-    // Scroll to trigger lazy loading (same as one-way)
-    for (let i = 0; i < 8; i++) {
+    console.log(`   ⏳ [SCROLL] Starting lazy load scrolling...`);
+    for (let i = 0; i < 5; i++) {
       await page.evaluate(() => {
         window.scrollBy(0, window.innerHeight);
       });
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1500);
+      console.log(`   ⏳ [SCROLL] Scroll ${i + 1}/5 complete`);
     }
 
-    // Wait for flight card selector to appear (same as one-way)
-    await page.waitForSelector("ol.hJSA-list li.hJSA-item", { timeout: 60000 });
+    console.log(`   ⏳ [WAIT] Waiting for flight items...`);
+    await page.waitForFunction(
+      () => {
+        return document.querySelectorAll("li.hJSA-item").length > 0;
+      },
+      { timeout: 90000 }
+    );
+    console.log(`   ✓ [DATA] Flight results found on page`);
+
+    const itemCount = await page.evaluate(() => {
+      return document.querySelectorAll("li.hJSA-item").length;
+    });
+    console.log(`   📊 [COUNT] Total items found: ${itemCount}`);
+
+    try {
+      const closeBtns = await page.$x(
+        "//button[contains(@aria-label, 'Close') or contains(@aria-label, 'close')]"
+      );
+      console.log(`   🗑️  [POPUP] Found ${closeBtns.length} close buttons`);
+      for (const btn of closeBtns) {
+        await btn.click().catch(() => {});
+        await page.waitForTimeout(500);
+      }
+    } catch (err) {
+      console.log(`   ℹ️  [POPUP] No popups to dismiss`);
+    }
+
+    console.log(`   🔍 [TEST] Testing extraction with first item...`);
+    const testResult = await page.evaluate(() => {
+      const firstItem = document.querySelector("li.hJSA-item");
+      if (!firstItem) return { error: "No items found" };
+
+      return {
+        hasVY2U: !!firstItem.querySelector(".VY2U"),
+        hasJWEO: !!firstItem.querySelector(".JWEO"),
+        hasXdW8: !!firstItem.querySelector(".xdW8"),
+        hasPrice: !!firstItem.querySelector(".e2GB-price-text"),
+        hasPriceContainer: !!firstItem.querySelector(".e2GB"),
+        hasBookingLink: !!firstItem.querySelector(".oVHK-fclink"),
+        hasBookingAnchor: !!firstItem.querySelector(".oVHK a"),
+        hasAirports: firstItem.querySelectorAll(".jLhY-airport-info span")
+          .length,
+        timeText: firstItem.querySelector(".VY2U .vmXl")?.innerText,
+        flightName: firstItem.querySelector(".VY2U .c_cgF")?.innerText,
+        duration: firstItem.querySelector(".xdW8 .vmXl")?.innerText,
+        price: firstItem.querySelector(".e2GB-price-text")?.innerText,
+      };
+    });
+    console.log(`   🔍 [TEST] First item extraction result:`, testResult);
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll("ol.hJSA-list li.hJSA-item");
-      return Array.from(items).map((item) => {
-        // Airline logos (array)
-        const airlineLogoNodes = item.querySelectorAll(
-          ".c5iUd-leg-carrier img"
-        );
-        const airlineLogos = Array.from(airlineLogoNodes).map((img) => img.src);
-        // From/To IATA
-        const airportSpans = item.querySelectorAll(".jLhY-airport-info span");
-        const fromIata = airportSpans[0]?.innerText || null;
-        const toIata = airportSpans[1]?.innerText || null;
-        const airlinePath =
-          fromIata && toIata ? `${fromIata} → ${toIata}` : null;
-        // Time
-        const timeElem = item.querySelector(".vmXl.vmXl-mod-variant-large");
-        const time = timeElem
-          ? Array.from(timeElem.querySelectorAll("span"))
-              .map((s) => s.innerText)
-              .join(" ")
-          : null;
-        // Flight name (first .c_cgF after time block)
-        const cgfElems = item.querySelectorAll(
-          ".c_cgF.c_cgF-mod-variant-default.c_cgF-mod-theme-foreground-neutral"
-        );
-        const flightName = cgfElems[0]?.innerText || null;
-        // Stops
-        const stopsElem = item.querySelector(".JWEO-stops-text");
-        const stops = stopsElem ? stopsElem.innerText.trim() : null;
-        // Duration
-        const durationElem = item.querySelector(
-          ".xdW8 .vmXl.vmXl-mod-variant-default"
-        );
-        const duration = durationElem ? durationElem.innerText.trim() : null;
-        // Price, booking link, provider (robust)
-        let price = null;
-        let bookingLink = null;
-        let provider = null;
-        // Try all .e2GB-price-text in the card
-        const priceElems = item.querySelectorAll(".e2GB-price-text");
-        for (let i = 0; i < priceElems.length; i++) {
-          const priceElem = priceElems[i];
-          const thisPrice = priceElem.innerText.replace(/\s/g, "");
-          let parent = priceElem.parentElement;
-          while (parent && parent.tagName !== "A") {
-            parent = parent.parentElement;
+      const items = document.querySelectorAll("li.hJSA-item");
+
+      return Array.from(items).map((item, idx) => {
+        try {
+          // Time
+          const timeContainer = item.querySelector(".VY2U .vmXl");
+          let time = null;
+          if (timeContainer) {
+            const timeText = timeContainer.innerText?.trim() || "";
+            time = timeText || null;
           }
-          let thisBookingLink = null;
-          if (parent && parent.tagName === "A") {
-            thisBookingLink = parent.getAttribute("href");
-            if (thisBookingLink && thisBookingLink.startsWith("/")) {
-              thisBookingLink = `https://www.kayak.com${thisBookingLink}`;
-            }
+
+          // Flight name
+          const flightNameElem = item.querySelector(
+            ".VY2U .c_cgF.c_cgF-mod-variant-default"
+          );
+          const flightName = flightNameElem?.innerText?.trim() || null;
+
+          // Stops
+          const stopsElem = item.querySelector(
+            ".JWEO .vmXl.vmXl-mod-variant-default span"
+          );
+          const stops = stopsElem?.innerText?.trim() || null;
+
+          // Duration
+          const durationElem = item.querySelector(
+            ".xdW8 .vmXl.vmXl-mod-variant-default"
+          );
+          const duration = durationElem?.innerText?.trim() || null;
+
+          // Airport codes
+          const airportInfos = item.querySelectorAll(".jLhY-airport-info span");
+          const fromIata =
+            airportInfos[0]?.innerText?.trim() ||
+            airportInfos[0]?.textContent?.trim() ||
+            null;
+          const toIata =
+            airportInfos[1]?.innerText?.trim() ||
+            airportInfos[1]?.textContent?.trim() ||
+            null;
+          const airlinePath =
+            fromIata && toIata ? `${fromIata} → ${toIata}` : null;
+
+          // Airline logos
+          const airlineLogoNodes = item.querySelectorAll(
+            ".c5iUd-leg-carrier img"
+          );
+          const airlineLogos = Array.from(airlineLogoNodes).map(
+            (img) => img.src
+          );
+
+          // IMPORTANT: Price and booking link are in SIBLING element
+          let price = null;
+          let bookingLink = null;
+          let provider = null;
+
+          let parentContainer = item.closest(".nrc6");
+          if (!parentContainer) {
+            parentContainer = item.closest("[data-resultid]");
           }
-          let providerElem = null;
-          let searchNode = priceElem;
-          for (let j = 0; j < 5 && searchNode; j++) {
-            providerElem =
-              searchNode.querySelector?.(".M_JD-provider-name") || null;
-            if (providerElem) break;
-            searchNode = searchNode.parentElement;
+          if (!parentContainer) {
+            parentContainer = item.parentElement?.parentElement?.parentElement;
           }
-          if (!providerElem) {
-            providerElem = item.querySelector(".M_JD-provider-name");
-          }
-          let thisProvider = providerElem ? providerElem.innerText : null;
-          if (thisPrice && thisBookingLink) {
-            price = thisPrice;
-            bookingLink = thisBookingLink;
-            provider = thisProvider;
-            break;
-          }
-        }
-        // If not found, check for price in sibling .nrc6-price-section
-        if (!price || !bookingLink) {
-          let priceSection = item
-            .closest(".hJSA-item")
-            ?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.querySelector(
+
+          if (parentContainer) {
+            const priceSection = parentContainer.querySelector(
               ".nrc6-price-section"
             );
-          if (!priceSection) {
-            priceSection =
-              item.parentElement?.parentElement?.parentElement?.parentElement
-                ?.parentElement?.nextElementSibling;
-          }
-          if (priceSection) {
-            const bookingAnchors = priceSection.querySelectorAll(
-              ".oVHK a.oVHK-fclink, .oVHK a"
-            );
-            for (let a = 0; a < bookingAnchors.length; a++) {
-              const anchor = bookingAnchors[a];
-              const priceElem = anchor.querySelector(".e2GB-price-text");
+            if (priceSection) {
+              const priceElem = priceSection.querySelector(".e2GB-price-text");
               if (priceElem) {
-                price = priceElem.innerText.replace(/\s/g, "");
-                bookingLink = anchor.getAttribute("href");
+                price = priceElem.innerText?.trim() || null;
+              }
+
+              const bookingAnchor = priceSection.querySelector(".oVHK-fclink");
+              if (bookingAnchor) {
+                bookingLink = bookingAnchor.getAttribute("href") || null;
                 if (bookingLink && bookingLink.startsWith("/")) {
                   bookingLink = `https://www.kayak.com${bookingLink}`;
                 }
-                const providerElem = priceSection.querySelector(
-                  ".M_JD-provider-name"
-                );
-                provider = providerElem ? providerElem.innerText : null;
-                break;
               }
+
+              const providerElem = priceSection.querySelector(".DOum-name");
+              provider = providerElem?.innerText?.trim() || flightName;
             }
           }
+
+          if (!price && parentContainer) {
+            const allText = parentContainer.innerText;
+            const priceMatch = allText.match(/\$[\d,]+/);
+            if (priceMatch) {
+              price = priceMatch[0];
+            }
+          }
+
+          return {
+            time,
+            flightName,
+            stops,
+            duration,
+            price,
+            provider,
+            bookingLink,
+            airlineLogos,
+            airlinePath,
+            fromIata,
+            toIata,
+          };
+        } catch (e) {
+          return null;
         }
-        if (!provider) {
-          const providerElem = item.querySelector(".M_JD-provider-name");
-          provider = providerElem ? providerElem.innerText : null;
-        }
-        return {
-          time,
-          flightName,
-          stops,
-          duration,
-          price,
-          provider,
-          bookingLink,
-          airlineLogos,
-          airlinePath,
-          fromIata,
-          toIata,
-        };
       });
     });
-    console.log("Kayak two-way raw results:", results);
+
+    console.log(`   📦 [EXTRACT] Extracted ${results.length} total items`);
+
     const filtered = results.filter(
-      (f) => f.time && f.flightName && f.duration
+      (f) =>
+        f &&
+        f.time &&
+        f.flightName &&
+        f.duration &&
+        f.price &&
+        f.fromIata &&
+        f.toIata
+    );
+
+    console.log(
+      `   ✅ [FILTER] Filtered: ${results.length} → ${filtered.length} valid items`
     );
     flights.push(...filtered);
-    console.log(`\x1b[32mFound ${flights.length} two-way flights\x1b[0m`);
-    console.log(flights);
+    console.log(`   ✅ [FINAL] Total flights: ${flights.length}`);
   } catch (error) {
     console.error(
-      `\x1b[31mError scraping Kayak two-way flights (Attempt ${attempt}):\x1b[0m`,
+      `   ❌ [ERROR] Kayak two-way scraping failed (Attempt ${attempt}):`,
       error.message
     );
+    console.error(`   ❌ [ERROR] Stack trace:`, error.stack);
     if (attempt < 3) {
+      console.log(`   🔄 [RETRY] Retrying in 5 seconds...`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
       await browser.close();
       return scrapeKayakFlightsTwoWay(
@@ -410,6 +523,7 @@ async function scrapeKayakFlightsTwoWay(
   } finally {
     await browser.close();
   }
+
   return flights;
 }
 
