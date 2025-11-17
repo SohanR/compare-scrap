@@ -109,7 +109,7 @@ function App() {
 
         {/* auth-only pages: redirect to home if already logged in */}
         <Route
-          path="/join"
+          path="/signin"
           element={
             <AuthRoute>
               <JoinPage />

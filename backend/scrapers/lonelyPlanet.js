@@ -59,7 +59,7 @@ async function scrapeLonelyPlanetThingsToDo(to) {
           item.querySelector("a.card-link span")?.innerText?.trim() || null;
         const imageUrl = item.querySelector("img")?.src || null;
         const link = item.querySelector("a.card-link")?.getAttribute("href")
-          ? `https://www.lonelyplanet.com${item
+          ? `https://www.lonelyplanet.com/${item
               .querySelector("a.card-link")
               .getAttribute("href")}`
           : null;
@@ -136,7 +136,7 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
           item.querySelector("a.card-link span")?.innerText?.trim() || null;
         const imageUrl = item.querySelector("img")?.src || null;
         const link = item.querySelector("a.card-link")?.getAttribute("href")
-          ? `https://www.lonelyplanet.com${item
+          ? `https://www.lonelyplanet.com/${item
               .querySelector("a.card-link")
               .getAttribute("href")}`
           : null;

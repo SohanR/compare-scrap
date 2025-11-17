@@ -128,7 +128,7 @@ const NavBar = () => {
           ) : (
             <Button
               component={NavLink}
-              to="/join"
+              to="/signin"
               startIcon={<PersonAddAlt1Icon />}
               variant="outlined"
               sx={{

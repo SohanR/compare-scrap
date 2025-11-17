@@ -35,7 +35,7 @@ const SignupPage = () => {
       await signupUser({ name, email, password });
       setApiSuccess("Signup successful! Please login.");
       toast.success("Signup successful! Please login.");
-      setTimeout(() => navigate("/join"), 1200);
+      setTimeout(() => navigate("/signin"), 1200);
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -129,7 +129,7 @@ const SignupPage = () => {
 
             <Typography variant="body2" align="center" sx={{ mt: 1 }}>
               Already have an account?{" "}
-              <MuiLink component={Link} to="/join" underline="hover">
+              <MuiLink component={Link} to="/signin" underline="hover">
                 Login
               </MuiLink>
             </Typography>

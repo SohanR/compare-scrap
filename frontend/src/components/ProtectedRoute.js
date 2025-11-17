@@ -5,7 +5,7 @@ import useAuthStore from "../store/authStore";
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   if (!isLoggedIn) {
-    return <Navigate to="/join" replace />;
+    return <Navigate to="/signin" replace />;
   }
   return children;
 };
