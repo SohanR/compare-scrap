@@ -120,3 +120,60 @@ export const formatDate = (date) => {
     day: "numeric",
   });
 };
+
+// Search History APIs
+export const createSearchHistory = async (userId, searchData) => {
+  try {
+    const response = await api.post("/search-history", {
+      userId,
+      from: searchData.from,
+      to: searchData.to,
+      date: searchData.date,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to save search history:", error.message);
+  }
+};
+
+export const getUserSearchHistory = async (userId) => {
+  try {
+    const response = await api.get(`/search-history/${userId}`);
+    return response.data.data || [];
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch search history"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const deleteSearchHistory = async (historyId) => {
+  try {
+    const response = await api.delete(`/search-history/${historyId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to delete search history"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const clearUserSearchHistory = async (userId) => {
+  try {
+    const response = await api.delete(`/search-history/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to clear search history"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};

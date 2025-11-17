@@ -193,3 +193,68 @@ body {
   color: #666;
   font-weight: 500;
 }
+
+/* Search History Item Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.search-history-item {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.search-history-item.removing {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+.search-history-empty {
+  animation: scaleOut 0.3s ease-out forwards;
+}
+
+.history-item-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-item-hover:hover {
+  background-color: rgba(33, 150, 243, 0.05);
+  border-left: 4px solid #2196f3;
+  padding-left: calc(1.5rem - 4px);
+}
+
+.delete-button-hover {
+  transition: all 0.2s ease-out;
+}
+
+.delete-button-hover:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  transform: scale(1.1);
+}

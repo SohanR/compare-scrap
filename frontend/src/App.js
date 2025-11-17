@@ -15,6 +15,7 @@ import {
   searchHotels,
   searchThingsToDo,
   searchTipsAndStories,
+  createSearchHistory,
 } from "./utils/api";
 import { Routes, Route } from "react-router-dom";
 import FlightSearch from "./components/FlightSearch";
@@ -25,6 +26,7 @@ import ProfilePage from "./components/ProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
+import useAuthStore from "./store/authStore";
 
 function App() {
   const [results, setResults] = useState({
@@ -51,6 +53,7 @@ function App() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const user = useAuthStore((state) => state.user);
 
   const handleSearch = async (searchData) => {
     // Set searching state
@@ -157,6 +160,13 @@ function App() {
         // All APIs completed, re-enable search button
         setIsSearching(false);
       });
+
+    // Save search history if user is logged in
+    if (user && user.id) {
+      createSearchHistory(user.id, searchData).catch((err) => {
+        console.error("Error saving search history:", err);
+      });
+    }
   };
 
   return (
