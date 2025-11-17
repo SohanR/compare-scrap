@@ -19,15 +19,13 @@ async function setupBrowser() {
 }
 
 async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
-  // to: full object, checkInDate: date, checkOutDate: returnDate
+  console.log(`   🏨 [SCRAPER] Starting Booking.com scraper`);
+
   // Adjust checkOutDate if it is the same as checkInDate
   if (checkInDate === checkOutDate) {
     const checkIn = new Date(checkInDate);
-    checkIn.setDate(checkIn.getDate() + 1); // Increment by 1 day
-    checkOutDate = checkIn.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-    console.log(
-      `\x1b[33mCheck-out date adjusted to:\x1b[0m ${checkOutDate}` // Yellow log
-    );
+    checkIn.setDate(checkIn.getDate() + 1);
+    checkOutDate = checkIn.toISOString().split("T")[0];
   }
 
   const browser = await setupBrowser();
@@ -43,25 +41,19 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
       to
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
 
-    console.log(`\x1b[34mNavigating to Booking.com URL:\x1b[0m ${url}`); // Blue log
+    console.log(`   🌐 [NAV] ${url}`);
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
-
-    // Log the page content for debugging
-    const pageContent = await page.content();
-    // console.log("\x1b[33mPage content loaded. First 500 characters:\x1b[0m");
-    // console.log(pageContent.substring(0, 500));
+    console.log(`   ✓ [PAGE] Content loaded successfully`);
 
     // Wait for hotels to load
     try {
       await page.waitForSelector('[data-testid="property-card"]', {
         timeout: 20000,
       });
-      console.log("\x1b[32mHotel cards found on the page.\x1b[0m"); // Green log
+      console.log(`   ✓ [DATA] Hotel cards found on page`);
     } catch (error) {
-      console.error(
-        "\x1b[31mHotel cards not found on the page. Selector might be incorrect.\x1b[0m" // Red log
-      );
+      console.error(`   ❌ [ERROR] Hotel cards not found on page`);
       throw error;
     }
 
@@ -97,18 +89,9 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
       }));
     });
 
-    // console.log(
-    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
-    //   JSON.stringify(results, null, 2)
-    // ); // Cyan log
-
     hotels.push(...results.filter((hotel) => hotel.name));
-    // console.log(
-    //   "\x1b[32mFiltered hotels with valid names and prices:\x1b[0m",
-    //   JSON.stringify(hotels, null, 2)
-    // ); // Green log
   } catch (error) {
-    console.error("\x1b[31mError scraping Booking.com:\x1b[0m", error.message); // Red log
+    console.error(`   ❌ [ERROR] Booking.com scraping failed:`, error.message);
   } finally {
     await browser.close();
   }
@@ -117,9 +100,7 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
 }
 
 async function scrapeHotels(location, checkInDate, checkOutDate) {
-  console.log(
-    `\x1b[34mStarting hotel scraping for ${location} from ${checkInDate} to ${checkOutDate}\x1b[0m` // Blue log
-  );
+  console.log(`   🔍 [PROCESS] Starting hotel scraping process`);
 
   try {
     const bookingResults = await scrapeBookingDotCom(
@@ -127,7 +108,7 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
       checkInDate,
       checkOutDate
     ).catch((err) => {
-      console.error("\x1b[31mBooking.com scraping error:\x1b[0m", err.message); // Red log
+      console.error(`   ❌ [ERROR] Booking.com scraping error:`, err.message);
       return [];
     });
 
@@ -139,14 +120,13 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
     // Sort by price
     const sortedHotels = allHotels.sort((a, b) => a.price - b.price);
 
-    console.log(`\x1b[32mFound ${sortedHotels.length} unique hotels\x1b[0m`); // Green log
-    // console.log(
-    //   "\x1b[36mFinal sorted hotel results:\x1b[0m",
-    //   JSON.stringify(sortedHotels, null, 2)
-    // ); // Cyan log
+    console.log(`   ✅ [FINAL] Total unique hotels: ${sortedHotels.length}`);
     return sortedHotels;
   } catch (error) {
-    console.error("\x1b[31mError during hotel scraping:\x1b[0m", error.message); // Red log
+    console.error(
+      `   ❌ [ERROR] Hotel scraping process failed:`,
+      error.message
+    );
     return [];
   }
 }

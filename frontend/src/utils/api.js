@@ -50,6 +50,62 @@ export const fetchFlightData = async (searchParams) => {
   }
 };
 
+export const searchTransportation = async (searchParams) => {
+  try {
+    const response = await api.post("/search/transportation", searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch transportation data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const searchHotels = async (searchParams) => {
+  try {
+    const response = await api.post("/search/hotels", searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch hotels data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const searchThingsToDo = async (searchParams) => {
+  try {
+    const response = await api.post("/search/things-to-do", searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch things to do data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const searchTipsAndStories = async (searchParams) => {
+  try {
+    const response = await api.post("/search/tips-and-stories", searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch tips and stories data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
 export const formatPrice = (price) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

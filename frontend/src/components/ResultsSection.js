@@ -1,12 +1,11 @@
 import React from "react";
-import { Box, Typography, Tabs, Tab } from "@mui/material";
+import { Box, Typography, Tabs, Tab, CircularProgress } from "@mui/material";
 import ResultCard from "./ResultCard";
-import PlaceCard from "./PlaceCard"; // Import PlaceCard
+import PlaceCard from "./PlaceCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import FlightCard from "./FlightCard"; // Import FlightCard
-import FlightSearch from "./FlightSearch";
+import FlightCard from "./FlightCard";
 
 const ResultsSection = ({
   results,
@@ -15,76 +14,20 @@ const ResultsSection = ({
   activeTab,
   onTabChange,
 }) => {
-  const renderContent = (Component, data) => {
-    if (Component === FlightCard) {
-      if (loading) {
-        return (
-          <Box sx={{ py: 4 }}>
-            {[1, 2, 3].map((i) => (
-              <Box key={i} sx={{ mb: 2 }}>
-                <Skeleton height={200} />
-              </Box>
-            ))}
-          </Box>
-        );
-      }
-      if (error) {
-        return (
-          <Box sx={{ textAlign: "center", py: 4, color: "error.main" }}>
-            <Typography variant="h6">{error}</Typography>
-          </Box>
-        );
-      }
-      if (!data || data.length === 0) {
-        return (
-          <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
-            <Typography variant="h6">No results found</Typography>
-            <Typography variant="body2">
-              Try adjusting your search criteria
-            </Typography>
-          </Box>
-        );
-      }
+  const renderContent = (Component, data, isLoading, isError) => {
+    if (isLoading) {
       return (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Box sx={{ py: 4 }}>
-              {data.map((item, index) => (
-                <FlightCard key={index} item={item} />
-              ))}
-            </Box>
-          </motion.div>
-        </AnimatePresence>
-      );
-    }
-
-    if (Component === FlightSearch) {
-      // Always render FlightSearchTab directly for the Transportation tab
-      return <FlightSearch />;
-    }
-
-    if (loading) {
-      return (
-        <Box sx={{ py: 4 }}>
-          {[1, 2, 3].map((i) => (
-            <Box key={i} sx={{ mb: 2 }}>
-              <Skeleton height={200} />
-            </Box>
-          ))}
+        <Box sx={{ py: 4, display: "flex", alignItems: "center", gap: 2 }}>
+          <CircularProgress size={24} />
+          <Typography color="text.secondary">Loading...</Typography>
         </Box>
       );
     }
 
-    if (error) {
+    if (isError) {
       return (
         <Box sx={{ textAlign: "center", py: 4, color: "error.main" }}>
-          <Typography variant="h6">{error}</Typography>
+          <Typography variant="h6">{isError}</Typography>
         </Box>
       );
     }
@@ -111,10 +54,17 @@ const ResultsSection = ({
         >
           <Box sx={{ py: 4 }}>
             {data.map((item, index) => (
-              <Component
+              <motion.div
                 key={index}
-                {...(Component === PlaceCard ? { place: item } : { item })}
-              />
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <Component
+                  key={index}
+                  {...(Component === PlaceCard ? { place: item } : { item })}
+                />
+              </motion.div>
             ))}
           </Box>
         </motion.div>
@@ -127,21 +77,29 @@ const ResultsSection = ({
       label: "Transportation",
       Component: FlightCard,
       data: results?.transportation || [],
+      isLoading: loading?.transportation || false,
+      isError: error?.transportation || null,
     },
     {
       label: "Hotels",
       Component: ResultCard,
       data: results?.hotels || [],
+      isLoading: loading?.hotels || false,
+      isError: error?.hotels || null,
     },
     {
       label: "Things to Do",
       Component: PlaceCard,
       data: results?.todo || [],
+      isLoading: loading?.todo || false,
+      isError: error?.todo || null,
     },
     {
       label: "Blogs & Articles",
       Component: PlaceCard,
       data: results?.tipsAndStories || [],
+      isLoading: loading?.tipsAndStories || false,
+      isError: error?.tipsAndStories || null,
     },
   ];
 
@@ -166,7 +124,9 @@ const ResultsSection = ({
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <span>{tab.label}</span>
-                {tab.data && tab.data.length > 0 && (
+                {tab.isLoading ? (
+                  <CircularProgress size={16} />
+                ) : tab.data && tab.data.length > 0 ? (
                   <Box
                     component="span"
                     sx={{
@@ -179,14 +139,19 @@ const ResultsSection = ({
                   >
                     {tab.data.length}
                   </Box>
-                )}
+                ) : null}
               </Box>
             }
           />
         ))}
       </Tabs>
 
-      {renderContent(tabData[activeTab].Component, tabData[activeTab].data)}
+      {renderContent(
+        tabData[activeTab].Component,
+        tabData[activeTab].data,
+        tabData[activeTab].isLoading,
+        tabData[activeTab].isError
+      )}
     </Box>
   );
 };

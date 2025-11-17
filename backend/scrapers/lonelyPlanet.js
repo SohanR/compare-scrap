@@ -18,9 +18,7 @@ async function setupBrowser() {
 }
 
 async function scrapeLonelyPlanetThingsToDo(to) {
-  console.log(
-    `\x1b[34mStarting Lonely Planet scraping for Things to Do: ${to}\x1b[0m`
-  );
+  console.log(`   🎯 [SCRAPER] Starting Things to Do scraper`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -30,25 +28,19 @@ async function scrapeLonelyPlanetThingsToDo(to) {
     const url = `https://www.lonelyplanet.com/search?q=${encodeURIComponent(
       to
     )}&sortBy=pois`;
-    console.log(`\x1b[34mNavigating to URL:\x1b[0m ${url}`);
+    console.log(`   🌐 [NAV] ${url}`);
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
-
-    // Log the page content for debugging
-    const pageContent = await page.content();
-    console.log("\x1b[33mPage content loaded. First 500 characters:\x1b[0m");
-    // console.log(pageContent.substring(0, 500));
+    console.log(`   ✓ [PAGE] Content loaded successfully`);
 
     // Wait for the target elements to load
     try {
       await page.waitForSelector("article.card-hover", {
         timeout: 20000,
       });
-      console.log("\x1b[32mTarget elements found on the page.\x1b[0m");
+      console.log(`   ✓ [DATA] Things to Do elements found on page`);
     } catch (error) {
-      console.error(
-        "\x1b[31mTarget elements not found. Selector might be incorrect.\x1b[0m"
-      );
+      console.error(`   ❌ [ERROR] Things to Do elements not found on page`);
       throw error;
     }
 
@@ -71,20 +63,14 @@ async function scrapeLonelyPlanetThingsToDo(to) {
       });
     });
 
-    // console.log(
-    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
-    //   JSON.stringify(results, null, 2)
-    // );
-
     thingsToDo.push(
       ...results.filter(
         (item) => item.name && item.description && item.imageUrl && item.link
       )
     );
-    //console.log(`\x1b[32mFiltered ${thingsToDo.length} valid items.\x1b[0m`);
   } catch (error) {
     console.error(
-      "\x1b[31mError scraping Lonely Planet:\x1b[0m",
+      `   ❌ [ERROR] Lonely Planet Things to Do scraping failed:`,
       error.message
     );
   } finally {
@@ -95,9 +81,7 @@ async function scrapeLonelyPlanetThingsToDo(to) {
 }
 
 async function scrapeLonelyPlanetTipsAndStories(destination) {
-  console.log(
-    `\x1b[34mStarting Lonely Planet scraping for tips and stories: ${destination}\x1b[0m`
-  );
+  console.log(`   📖 [SCRAPER] Starting Tips & Stories scraper`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -107,25 +91,19 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
     const url = `https://www.lonelyplanet.com/search?q=${encodeURIComponent(
       destination
     )}&sortBy=articles`;
-    console.log(`\x1b[34mNavigating to URL:\x1b[0m ${url}`);
+    console.log(`   🌐 [NAV] ${url}`);
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
-
-    // Log the page content for debugging
-    const pageContent = await page.content();
-    console.log("\x1b[33mPage content loaded. First 500 characters:\x1b[0m");
-    console.log(pageContent.substring(0, 500));
+    console.log(`   ✓ [PAGE] Content loaded successfully`);
 
     // Wait for the target elements to load
     try {
       await page.waitForSelector("article.card-hover", {
         timeout: 20000,
       });
-      console.log("\x1b[32mTarget elements found on the page.\x1b[0m");
+      console.log(`   ✓ [DATA] Tips & Stories elements found on page`);
     } catch (error) {
-      console.error(
-        "\x1b[31mTarget elements not found. Selector might be incorrect.\x1b[0m"
-      );
+      console.error(`   ❌ [ERROR] Tips & Stories elements not found on page`);
       throw error;
     }
 
@@ -148,22 +126,14 @@ async function scrapeLonelyPlanetTipsAndStories(destination) {
       });
     });
 
-    // console.log(
-    //   "\x1b[36mRaw results from page evaluation:\x1b[0m",
-    //   JSON.stringify(results, null, 2)
-    // );
-
     tipsAndStories.push(
       ...results.filter(
         (item) => item.name && item.description && item.imageUrl && item.link
       )
     );
-    console.log(
-      `\x1b[32mFiltered ${tipsAndStories.length} valid items.\x1b[0m`
-    );
   } catch (error) {
     console.error(
-      "\x1b[31mError scraping Lonely Planet tips and stories:\x1b[0m",
+      `   ❌ [ERROR] Lonely Planet Tips & Stories scraping failed:`,
       error.message
     );
   } finally {

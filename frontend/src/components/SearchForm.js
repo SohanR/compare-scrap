@@ -78,7 +78,7 @@ const suggestionStyles = {
   },
 };
 
-const SearchForm = ({ onSearch, loading }) => {
+const SearchForm = ({ onSearch }) => {
   const [from, setFrom] = useState("");
   const [fromObj, setFromObj] = useState(null);
   const [fromSuggestions, setFromSuggestions] = useState([]);
@@ -86,8 +86,9 @@ const SearchForm = ({ onSearch, loading }) => {
   const [toObj, setToObj] = useState(null);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [date, setDate] = useState(new Date());
-  const [tripType, setTripType] = useState("oneway"); // "oneway" or "twoway"
+  const [tripType, setTripType] = useState("oneway");
   const [returnDate, setReturnDate] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleTripType = (event, newType) => {
     if (newType) setTripType(newType);

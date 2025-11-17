@@ -10,7 +10,12 @@ import SearchForm from "./components/SearchForm";
 import ResultsSection from "./components/ResultsSection";
 import LandingPage from "./components/LandingPage";
 import { motion } from "framer-motion";
-import { searchTravel } from "./utils/api";
+import {
+  searchTransportation,
+  searchHotels,
+  searchThingsToDo,
+  searchTipsAndStories,
+} from "./utils/api";
 import { Routes, Route } from "react-router-dom";
 import FlightSearch from "./components/FlightSearch";
 import NavBar from "./components/NavBar";
@@ -22,31 +27,128 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
 
 function App() {
-  const [results, setResults] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [results, setResults] = useState({
+    transportation: [],
+    hotels: [],
+    todo: [],
+    tipsAndStories: [],
+  });
+  const [loading, setLoading] = useState({
+    transportation: false,
+    hotels: false,
+    todo: false,
+    tipsAndStories: false,
+  });
+  const [error, setError] = useState({
+    transportation: null,
+    hotels: null,
+    todo: null,
+    tipsAndStories: null,
+  });
   const [activeTab, setActiveTab] = useState(0);
+  const [showResults, setShowResults] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleSearch = async (searchData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await searchTravel(searchData);
-      setResults(data);
+    // Reset state
+    setResults({
+      transportation: [],
+      hotels: [],
+      todo: [],
+      tipsAndStories: [],
+    });
+    setLoading({
+      transportation: true,
+      hotels: true,
+      todo: true,
+      tipsAndStories: true,
+    });
+    setError({
+      transportation: null,
+      hotels: null,
+      todo: null,
+      tipsAndStories: null,
+    });
+    setShowResults(true);
 
-      // Smooth scroll to results
+    // Smooth scroll to results
+    setTimeout(() => {
       const resultsElement = document.getElementById("results-section");
       if (resultsElement) {
         resultsElement.scrollIntoView({ behavior: "smooth" });
       }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    }, 300);
+
+    // Transportation API
+    searchTransportation({
+      from: searchData.from,
+      to: searchData.to,
+      date: searchData.date,
+      returnDate: searchData.returnDate,
+      tripType: searchData.tripType,
+    })
+      .then((data) => {
+        setResults((prev) => ({
+          ...prev,
+          transportation: data.transportation || [],
+        }));
+        setLoading((prev) => ({ ...prev, transportation: false }));
+      })
+      .catch((err) => {
+        setError((prev) => ({ ...prev, transportation: err.message }));
+        setLoading((prev) => ({ ...prev, transportation: false }));
+      });
+
+    // Hotels API
+    searchHotels({
+      to: searchData.to,
+      date: searchData.date,
+    })
+      .then((data) => {
+        setResults((prev) => ({
+          ...prev,
+          hotels: data.hotels || [],
+        }));
+        setLoading((prev) => ({ ...prev, hotels: false }));
+      })
+      .catch((err) => {
+        setError((prev) => ({ ...prev, hotels: err.message }));
+        setLoading((prev) => ({ ...prev, hotels: false }));
+      });
+
+    // Things to Do API
+    searchThingsToDo({
+      to: searchData.to,
+    })
+      .then((data) => {
+        setResults((prev) => ({
+          ...prev,
+          todo: data.todo || [],
+        }));
+        setLoading((prev) => ({ ...prev, todo: false }));
+      })
+      .catch((err) => {
+        setError((prev) => ({ ...prev, todo: err.message }));
+        setLoading((prev) => ({ ...prev, todo: false }));
+      });
+
+    // Tips and Stories API
+    searchTipsAndStories({
+      to: searchData.to,
+    })
+      .then((data) => {
+        setResults((prev) => ({
+          ...prev,
+          tipsAndStories: data.tipsAndStories || [],
+        }));
+        setLoading((prev) => ({ ...prev, tipsAndStories: false }));
+      })
+      .catch((err) => {
+        setError((prev) => ({ ...prev, tipsAndStories: err.message }));
+        setLoading((prev) => ({ ...prev, tipsAndStories: false }));
+      });
   };
 
   return (
@@ -86,9 +188,9 @@ function App() {
                       Find Your Perfect Travel Deals
                     </Typography>
 
-                    <SearchForm onSearch={handleSearch} loading={loading} />
+                    <SearchForm onSearch={handleSearch} />
 
-                    {(results || loading || error) && (
+                    {showResults && (
                       <Box id="results-section" sx={{ mt: 4 }}>
                         <ResultsSection
                           results={results}
