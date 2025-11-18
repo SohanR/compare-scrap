@@ -182,21 +182,6 @@ const LandingPage = () => {
           </Grid>
         </Grid>
 
-        {/* Stats Section
-        <Box sx={{ mb: 8 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={4}>
-              <StatCard value="90%" label="Success Rate" delay={0.2} />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <StatCard value="1M+" label="Happy Users" delay={0.3} />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <StatCard value="24/7" label="Customer Support" delay={0.4} />
-            </Grid>
-          </Grid>
-        </Box> */}
-
         {/* Features Section */}
         <Box sx={{ mb: 8 }}>
           <Typography
