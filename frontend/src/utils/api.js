@@ -177,3 +177,91 @@ export const clearUserSearchHistory = async (userId) => {
     throw new Error("Network error occurred");
   }
 };
+
+// Settings APIs
+export const getUserSettings = async (userId) => {
+  try {
+    const response = await api.get(`/settings/${userId}`);
+    return response.data.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to fetch settings");
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const updateUserName = async (userId, name) => {
+  try {
+    const response = await api.put(`/settings/${userId}/name`, { name });
+    return response.data.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to update name");
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const updateUserBio = async (userId, bio) => {
+  try {
+    const response = await api.put(`/settings/${userId}/bio`, { bio });
+    return response.data.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to update bio");
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const updateVisitedPlaces = async (userId, visitedPlaces) => {
+  try {
+    const response = await api.put(`/settings/${userId}/visited-places`, {
+      visitedPlaces,
+    });
+    return response.data.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to update visited places"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const resetPassword = async (
+  userId,
+  currentPassword,
+  newPassword,
+  confirmPassword
+) => {
+  try {
+    const response = await api.post(`/settings/${userId}/reset-password`, {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to reset password");
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const deleteAccount = async (userId, password) => {
+  try {
+    const response = await api.delete(`/settings/${userId}/delete-account`, {
+      data: { password },
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.error || "Failed to delete account");
+    }
+    throw new Error("Network error occurred");
+  }
+};

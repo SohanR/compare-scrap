@@ -11,6 +11,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String, required: true },
+    bio: { type: String, default: "", trim: true },
+    visitedPlaces: [
+      {
+        code: String,
+        name: String,
+        year: Number,
+      },
+    ],
     role: { type: String, default: "user" },
   },
   { timestamps: true }
