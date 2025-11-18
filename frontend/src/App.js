@@ -22,7 +22,7 @@ import FlightSearch from "./components/FlightSearch";
 import NavBar from "./components/NavBar";
 import JoinPage from "./components/JoinPage";
 import SignupPage from "./components/SignupPage";
-import ProfilePage from "./components/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";

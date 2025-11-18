@@ -451,18 +451,28 @@ const ProfilePage = () => {
                           </Typography>
                         ) : (
                           history.slice(0, 5).map((h, i) => (
-                            <Box key={i} sx={{ mt: 1 }}>
+                            <Box
+                              key={i}
+                              sx={{
+                                mt: 1.5,
+                                p: 1.5,
+                                bgcolor: "background.default",
+                                borderRadius: 1,
+                                border: "1px solid",
+                                borderColor: "divider",
+                              }}
+                            >
                               <Typography variant="body2" fontWeight={700}>
-                                {h.query || `${h.from} → ${h.to}`}
+                                {h.from?.city} → {h.to?.city}
                               </Typography>
                               <Typography
                                 variant="caption"
                                 color="text.secondary"
                               >
-                                {formatDistanceToNow(
-                                  new Date(h.timestamp || Date.now()),
-                                  { addSuffix: true }
-                                )}
+                                {h.date} •{" "}
+                                {formatDistanceToNow(new Date(h.createdAt), {
+                                  addSuffix: true,
+                                })}
                               </Typography>
                             </Box>
                           ))
