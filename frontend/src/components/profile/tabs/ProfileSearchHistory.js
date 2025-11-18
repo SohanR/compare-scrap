@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -34,9 +34,9 @@ import {
 const ProfileSearchHistory = ({ history, setHistory, loading, setLoading }) => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const [removingId, setRemovingId] = React.useState(null);
-  const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
-  const [clearing, setClearing] = React.useState(false);
+  const [removingId, setRemovingId] = useState(null);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     if (user && user.id) {
