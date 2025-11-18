@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Tabs, Tab, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
 import ResultCard from "./ResultCard";
 import PlaceCard from "./PlaceCard";
+import WikiCard from "./WikiCard";
+import WikiSkeleton from "./WikiSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import FlightCard from "./FlightCard";
+import useSearchStore from "../store/searchStore";
+import { getWikiSummary } from "../utils/api";
 
 const ResultsSection = ({
   results,
@@ -15,10 +26,40 @@ const ResultsSection = ({
   onTabChange,
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [wikiData, setWikiData] = useState(null);
+  const [wikiLoading, setWikiLoading] = useState(false);
+  const [wikiError, setWikiError] = useState(null);
+
   const messages = [
     "Please wait, we are scraping data",
     "Scraping data takes long time sometimes",
   ];
+
+  const lastSearch = useSearchStore((state) => state.lastSearch);
+  const destination = lastSearch?.to?.city;
+
+  // Fetch wiki data when destination changes
+  useEffect(() => {
+    if (destination && activeTab === 4) {
+      fetchWikiData();
+    }
+  }, [destination, activeTab]);
+
+  const fetchWikiData = async () => {
+    if (!destination) return;
+
+    setWikiLoading(true);
+    setWikiError(null);
+    try {
+      const data = await getWikiSummary(destination);
+      setWikiData(data);
+    } catch (err) {
+      setWikiError(err.message);
+      setWikiData(null);
+    } finally {
+      setWikiLoading(false);
+    }
+  };
 
   useEffect(() => {
     const isAnyLoading = Object.values(loading).some((l) => l === true);
@@ -96,6 +137,47 @@ const ResultsSection = ({
     );
   };
 
+  const renderWikiContent = () => {
+    if (wikiLoading) {
+      return (
+        <Box sx={{ py: 4 }}>
+          <WikiSkeleton />
+        </Box>
+      );
+    }
+
+    if (wikiError) {
+      return (
+        <Box sx={{ py: 4 }}>
+          <Alert severity="error">{wikiError}</Alert>
+        </Box>
+      );
+    }
+
+    if (!wikiData) {
+      return (
+        <Box sx={{ py: 4 }}>
+          <Alert severity="info">No wiki information available</Alert>
+        </Box>
+      );
+    }
+
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Box sx={{ py: 4 }}>
+            <WikiCard wikiData={wikiData} />
+          </Box>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
   const tabData = [
     {
       label: "Transportation",
@@ -125,6 +207,10 @@ const ResultsSection = ({
       isLoading: loading?.tipsAndStories || false,
       isError: error?.tipsAndStories || null,
     },
+    {
+      label: `Wiki: ${destination || "Destination"}`,
+      isWiki: true,
+    },
   ];
 
   return (
@@ -132,7 +218,8 @@ const ResultsSection = ({
       <Tabs
         value={activeTab}
         onChange={(e, newValue) => onTabChange(newValue)}
-        variant="fullWidth"
+        variant="scrollable"
+        scrollButtons="auto"
         sx={{
           mb: 3,
           "& .MuiTab-root": {
@@ -148,34 +235,43 @@ const ResultsSection = ({
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <span>{tab.label}</span>
-                {tab.isLoading ? (
-                  <CircularProgress size={16} />
-                ) : tab.data && tab.data.length > 0 ? (
-                  <Box
-                    component="span"
-                    sx={{
-                      bgcolor: "primary.main",
-                      color: "white",
-                      px: 1,
-                      borderRadius: "12px",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {tab.data.length}
-                  </Box>
-                ) : null}
+                {!tab.isWiki ? (
+                  <>
+                    {tab.isLoading ? (
+                      <CircularProgress size={16} />
+                    ) : tab.data && tab.data.length > 0 ? (
+                      <Box
+                        component="span"
+                        sx={{
+                          bgcolor: "primary.main",
+                          color: "white",
+                          px: 1,
+                          borderRadius: "12px",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        {tab.data.length}
+                      </Box>
+                    ) : null}
+                  </>
+                ) : (
+                  wikiLoading && <CircularProgress size={16} />
+                )}
               </Box>
             }
           />
         ))}
       </Tabs>
 
-      {renderContent(
-        tabData[activeTab].Component,
-        tabData[activeTab].data,
-        tabData[activeTab].isLoading,
-        tabData[activeTab].isError
-      )}
+      {/* Render content based on active tab */}
+      {activeTab < 4
+        ? renderContent(
+            tabData[activeTab].Component,
+            tabData[activeTab].data,
+            tabData[activeTab].isLoading,
+            tabData[activeTab].isError
+          )
+        : renderWikiContent()}
     </Box>
   );
 };

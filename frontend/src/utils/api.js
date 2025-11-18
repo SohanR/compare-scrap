@@ -265,3 +265,24 @@ export const deleteAccount = async (userId, password) => {
     throw new Error("Network error occurred");
   }
 };
+
+// Wiki API
+export const getWikiSummary = async (destination) => {
+  try {
+    const response = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+        destination
+      )}`
+    );
+    if (!response.ok) {
+      throw new Error("Wiki page not found");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error.message === "Wiki page not found") {
+      throw new Error("Wiki page not found for this destination");
+    }
+    throw new Error("Failed to fetch wiki information");
+  }
+};
