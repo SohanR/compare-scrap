@@ -132,35 +132,6 @@ const ResultCard = ({ item, type }) => {
               </>
             )}
 
-            {type === "transportation" && (
-              <Box sx={{ my: 2 }}>
-                <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      From - To
-                    </Typography>
-                    <Typography variant="body1">
-                      {item.from} → {item.to}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Duration
-                    </Typography>
-                    <Typography variant="body1">{item.duration}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Time
-                    </Typography>
-                    <Typography variant="body1">
-                      {item.departureTime} - {item.arrivalTime}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            )}
-
             <Box
               sx={{
                 display: "flex",

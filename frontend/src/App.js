@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import SearchForm from "./components/SearchForm";
 import ResultsSection from "./components/ResultsSection";
-import LandingPage from "./components/LandingPage";
+import LandingPage from "./pages/LandingPage";
 import { motion } from "framer-motion";
 import {
   searchTransportation,
@@ -18,14 +18,13 @@ import {
   createSearchHistory,
 } from "./utils/api";
 import { Routes, Route } from "react-router-dom";
-import FlightSearch from "./components/FlightSearch";
 import NavBar from "./components/NavBar";
-import JoinPage from "./components/JoinPage";
-import SignupPage from "./components/SignupPage";
+import JoinPage from "./pages/JoinPage";
+import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
-import SettingsPage from "./components/SettingsPage";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AuthRoute from "./components/AuthRoute";
+import SettingsPage from "./pages/SettingsPage";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import AuthRoute from "./utils/AuthRoute";
 import useAuthStore from "./store/authStore";
 
 function App() {
@@ -228,7 +227,6 @@ function App() {
             </Box>
           }
         />
-        <Route path="/flights" element={<FlightSearch />} />
 
         {/* auth-only pages: redirect to home if already logged in */}
         <Route

@@ -1,21 +1,20 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import LandingPage from "../components/LandingPage";
+import LandingPage from "../pages/LandingPage";
 import SearchPage from "../pages/SearchPage";
 import ProfilePage from "../pages/ProfilePage";
-import FlightSearch from "../components/FlightSearch";
-import JoinPage from "../components/JoinPage";
-import SignupPage from "../components/SignupPage";
-import SettingsPage from "../components/SettingsPage";
-import ProtectedRoute from "../components/ProtectedRoute";
-import AuthRoute from "../components/AuthRoute";
+
+import JoinPage from "../pages/JoinPage";
+import SignupPage from "../pages/SignupPage";
+import SettingsPage from "../pages/SettingsPage";
+import ProtectedRoute from "./ProtectedRoute";
+import AuthRoute from "./AuthRoute";
 
 const RoutesConfig = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/search" element={<SearchPage />} />
-      <Route path="/flights" element={<FlightSearch />} />
 
       {/* Auth-only pages: redirect to home if already logged in */}
       <Route
