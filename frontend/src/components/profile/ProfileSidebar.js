@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Edit,
@@ -20,17 +21,37 @@ import {
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import { toast } from "react-toastify";
+import { getUserSettings } from "../../utils/api";
 
 const ProfileSidebar = ({ bookmarks, history, onTabChange }) => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
-  const [bio] = useState(user?.bio || "");
-  const [visitedCountries] = useState([
-    { code: "🇧🇩", name: "Bangladesh", year: 2023 },
-    { code: "🇹🇭", name: "Thailand", year: 2023 },
-    { code: "🇻🇳", name: "Vietnam", year: 2022 },
-  ]);
+
+  const [bio, setBio] = useState("");
+  const [visitedCountries, setVisitedCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user settings from API
+  useEffect(() => {
+    if (user && user.id) {
+      fetchUserSettings();
+    }
+  }, [user]);
+
+  const fetchUserSettings = async () => {
+    setLoading(true);
+    try {
+      const data = await getUserSettings(user.id);
+      setBio(data.bio || "");
+      setVisitedCountries(data.visitedPlaces || []);
+    } catch (err) {
+      console.error("Failed to load user settings:", err);
+      toast.error("Failed to load user settings");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -86,9 +107,15 @@ const ProfileSidebar = ({ bookmarks, history, onTabChange }) => {
         >
           YOUR BIO
         </Typography>
-        <Typography variant="body2" sx={{ mt: 1, minHeight: 40 }}>
-          {bio || "No bio added yet. Add one in settings!"}
-        </Typography>
+        {loading ? (
+          <Box sx={{ mt: 1, display: "flex", justifyContent: "center" }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Typography variant="body2" sx={{ mt: 1, minHeight: 40 }}>
+            {bio || "No bio added yet. Add one in settings!"}
+          </Typography>
+        )}
       </Paper>
 
       {/* Visited Countries */}
@@ -107,7 +134,9 @@ const ProfileSidebar = ({ bookmarks, history, onTabChange }) => {
           </Typography>
         </Box>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {visitedCountries.length === 0 ? (
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : visitedCountries.length === 0 ? (
             <Typography variant="caption" color="text.secondary">
               Start adding countries you've visited!
             </Typography>
