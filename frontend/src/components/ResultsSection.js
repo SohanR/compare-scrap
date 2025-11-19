@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Component } from "react";
 import {
   Box,
   Typography,
@@ -9,14 +9,12 @@ import {
 } from "@mui/material";
 import ResultCard from "./ResultCard";
 import PlaceCard from "./PlaceCard";
-import WikiCard from "./WikiCard";
-import WikiSkeleton from "./WikiSkeleton";
+import WikiCard from "./wiki/WikiCard";
+import WikiSkeleton from "./wiki/WikiSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import FlightCard from "./FlightCard";
-import useSearchStore from "../store/searchStore";
-import { getWikiSummary } from "../utils/api";
 
 const ResultsSection = ({
   results,
@@ -26,40 +24,10 @@ const ResultsSection = ({
   onTabChange,
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
-  const [wikiData, setWikiData] = useState(null);
-  const [wikiLoading, setWikiLoading] = useState(false);
-  const [wikiError, setWikiError] = useState(null);
-
   const messages = [
     "Please wait, we are scraping data",
     "Scraping data takes long time sometimes",
   ];
-
-  const lastSearch = useSearchStore((state) => state.lastSearch);
-  const destination = lastSearch?.to?.city;
-
-  // Fetch wiki data when destination changes
-  useEffect(() => {
-    if (destination && activeTab === 4) {
-      fetchWikiData();
-    }
-  }, [destination, activeTab]);
-
-  const fetchWikiData = async () => {
-    if (!destination) return;
-
-    setWikiLoading(true);
-    setWikiError(null);
-    try {
-      const data = await getWikiSummary(destination);
-      setWikiData(data);
-    } catch (err) {
-      setWikiError(err.message);
-      setWikiData(null);
-    } finally {
-      setWikiLoading(false);
-    }
-  };
 
   useEffect(() => {
     const isAnyLoading = Object.values(loading).some((l) => l === true);
@@ -88,7 +56,6 @@ const ResultsSection = ({
     if (isLoading) {
       return renderLoadingState();
     }
-
     if (isError) {
       return (
         <Box sx={{ textAlign: "center", py: 4, color: "error.main" }}>
@@ -96,7 +63,6 @@ const ResultsSection = ({
         </Box>
       );
     }
-
     if (!data || data.length === 0) {
       return (
         <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
@@ -107,7 +73,6 @@ const ResultsSection = ({
         </Box>
       );
     }
-
     return (
       <AnimatePresence mode="wait">
         <motion.div
@@ -138,30 +103,27 @@ const ResultsSection = ({
   };
 
   const renderWikiContent = () => {
-    if (wikiLoading) {
+    if (loading.wiki) {
       return (
         <Box sx={{ py: 4 }}>
           <WikiSkeleton />
         </Box>
       );
     }
-
-    if (wikiError) {
+    if (error.wiki) {
       return (
         <Box sx={{ py: 4 }}>
-          <Alert severity="error">{wikiError}</Alert>
+          <Alert severity="error">{error.wiki}</Alert>
         </Box>
       );
     }
-
-    if (!wikiData) {
+    if (!results.wiki) {
       return (
         <Box sx={{ py: 4 }}>
           <Alert severity="info">No wiki information available</Alert>
         </Box>
       );
     }
-
     return (
       <AnimatePresence mode="wait">
         <motion.div
@@ -171,7 +133,7 @@ const ResultsSection = ({
           transition={{ duration: 0.3 }}
         >
           <Box sx={{ py: 4 }}>
-            <WikiCard wikiData={wikiData} />
+            <WikiCard wikiData={results.wiki} />
           </Box>
         </motion.div>
       </AnimatePresence>
@@ -208,7 +170,11 @@ const ResultsSection = ({
       isError: error?.tipsAndStories || null,
     },
     {
-      label: `Wiki: ${destination || "Destination"}`,
+      label: "Wiki",
+      Component: WikiCard,
+      data: results?.wiki || null,
+      isLoading: loading?.wiki || false,
+      isError: error?.wiki || null,
       isWiki: true,
     },
   ];
@@ -255,14 +221,13 @@ const ResultsSection = ({
                     ) : null}
                   </>
                 ) : (
-                  wikiLoading && <CircularProgress size={16} />
+                  loading.wiki && <CircularProgress size={16} />
                 )}
               </Box>
             }
           />
         ))}
       </Tabs>
-
       {/* Render content based on active tab */}
       {activeTab < 4
         ? renderContent(

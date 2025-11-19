@@ -3,6 +3,7 @@ import {
   searchHotels,
   searchThingsToDo,
   searchTipsAndStories,
+  getWikiSummary,
   createSearchHistory,
 } from "../utils/api";
 import useAuthStore from "../store/authStore";
@@ -26,18 +27,21 @@ const useSearchHandler = ({
       hotels: [],
       todo: [],
       tipsAndStories: [],
+      wiki: null,
     });
     setLoading({
       transportation: true,
       hotels: true,
       todo: true,
       tipsAndStories: true,
+      wiki: true,
     });
     setError({
       transportation: null,
       hotels: null,
       todo: null,
       tipsAndStories: null,
+      wiki: null,
     });
     setShowResults(true);
 
@@ -116,6 +120,17 @@ const useSearchHandler = ({
       .catch((err) => {
         setError((prev) => ({ ...prev, tipsAndStories: err.message }));
         setLoading((prev) => ({ ...prev, tipsAndStories: false }));
+      });
+
+    // Wiki API
+    getWikiSummary(searchData.to?.city)
+      .then((data) => {
+        setResults((prev) => ({ ...prev, wiki: data }));
+        setLoading((prev) => ({ ...prev, wiki: false }));
+      })
+      .catch((err) => {
+        setError((prev) => ({ ...prev, wiki: err.message }));
+        setLoading((prev) => ({ ...prev, wiki: false }));
       })
       .finally(() => {
         // All APIs completed, re-enable search button

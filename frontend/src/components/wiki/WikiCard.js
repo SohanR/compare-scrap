@@ -10,7 +10,7 @@ import {
   Paper,
   Divider,
 } from "@mui/material";
-import { OpenInNew, LocationOn, Info, BookOpen } from "@mui/icons-material";
+import { OpenInNew, LocationOn, Info, AutoStories } from "@mui/icons-material";
 import { motion } from "framer-motion";
 
 const WikiCard = ({ wikiData }) => {
@@ -86,9 +86,7 @@ const WikiCard = ({ wikiData }) => {
               </Box>
             )}
           </Box>
-
           <Divider sx={{ my: 2 }} />
-
           {/* Coordinates */}
           {wikiData.coordinates && (
             <Box sx={{ mb: 2 }}>
@@ -121,10 +119,7 @@ const WikiCard = ({ wikiData }) => {
               </Paper>
             </Box>
           )}
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Extract */}
+          <Divider sx={{ my: 2 }} /> {/* Extract */}
           {wikiData.extract && (
             <Box sx={{ mb: 2 }}>
               <Box
@@ -135,7 +130,7 @@ const WikiCard = ({ wikiData }) => {
                   mb: 1.5,
                 }}
               >
-                <BookOpen sx={{ color: "primary.main", fontSize: 20 }} />
+                <AutoStories sx={{ color: "primary.main", fontSize: 20 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                   About This Place
                 </Typography>
@@ -155,9 +150,7 @@ const WikiCard = ({ wikiData }) => {
               </Typography>
             </Box>
           )}
-
           <Divider sx={{ my: 2 }} />
-
           {/* CTA Button */}
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
@@ -182,7 +175,6 @@ const WikiCard = ({ wikiData }) => {
               Read Full Article on Wikipedia
             </Button>
           </motion.div>
-
           {/* Info Footer */}
           <Box sx={{ mt: 2, textAlign: "center" }}>
             <Typography variant="caption" color="text.secondary">

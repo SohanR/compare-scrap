@@ -22,34 +22,6 @@ export async function signupUser({ name, email, password }) {
   return res.data;
 }
 
-export const searchTravel = async (searchParams) => {
-  try {
-    const response = await api.post("/search", searchParams);
-    return response.data;
-  } catch (error) {
-    if (error.response) {
-      throw new Error(
-        error.response.data.error || "Failed to fetch travel data"
-      );
-    }
-    throw new Error("Network error occurred");
-  }
-};
-
-export const fetchFlightData = async (searchParams) => {
-  try {
-    const response = await api.post("/flight_data", searchParams);
-    return response.data;
-  } catch (error) {
-    if (error.response) {
-      throw new Error(
-        error.response.data.error || "Failed to fetch flight data"
-      );
-    }
-    throw new Error("Network error occurred");
-  }
-};
-
 export const searchTransportation = async (searchParams) => {
   try {
     const response = await api.post("/search/transportation", searchParams);
