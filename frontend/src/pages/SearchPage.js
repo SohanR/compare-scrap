@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
@@ -41,12 +41,23 @@ const SearchPage = () => {
     tipsAndStories: null,
     wiki: null,
   });
+  const [destination, setDestination] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const user = useAuthStore((state) => state.user);
+
+  // Update background image when wiki data is loaded
+  useEffect(() => {
+    if (results?.wiki?.originalimage?.source && !loading.wiki) {
+      setBackgroundImage(results.wiki.originalimage.source);
+    }
+  }, [results?.wiki?.originalimage?.source, loading.wiki]);
+
+  console.log("bg img", backgroundImage);
 
   const handleSearch = async (searchData) => {
     setIsSearching(true);
@@ -71,6 +82,7 @@ const SearchPage = () => {
       tipsAndStories: null,
       wiki: null,
     });
+    setDestination(searchData.to.city);
     setShowResults(true);
     setTimeout(() => {
       const resultsElement = document.getElementById("results-section");
@@ -158,9 +170,36 @@ const SearchPage = () => {
       sx={{
         minHeight: "100vh",
         background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        position: "relative",
+        transition: "all 0.5s ease-in-out",
+        // Background image with overlay - only applied when image is loaded
+        ...(backgroundImage && {
+          "&::before": {
+            content: '""',
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundAttachment: "fixed",
+            filter: "blur(5px)",
+            opacity: 12,
+            zIndex: 0,
+            transition: "opacity 0.5s ease-in-out",
+          },
+        }),
       }}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth="lg"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,6 +229,7 @@ const SearchPage = () => {
                   error={error}
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
+                  destination={destination}
                 />
               </Box>
             )}

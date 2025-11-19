@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -22,6 +22,7 @@ const ResultsSection = ({
   error,
   activeTab,
   onTabChange,
+  destination,
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = [
@@ -142,21 +143,21 @@ const ResultsSection = ({
 
   const tabData = [
     {
-      label: "Transportation",
+      label: `Flights for ${destination}`,
       Component: FlightCard,
       data: results?.transportation || [],
       isLoading: loading?.transportation || false,
       isError: error?.transportation || null,
     },
     {
-      label: "Hotels",
+      label: `Hotels in ${destination}`,
       Component: ResultCard,
       data: results?.hotels || [],
       isLoading: loading?.hotels || false,
       isError: error?.hotels || null,
     },
     {
-      label: "Things to Do",
+      label: `Things to Do in ${destination}`,
       Component: PlaceCard,
       data: results?.todo || [],
       isLoading: loading?.todo || false,
@@ -170,7 +171,7 @@ const ResultsSection = ({
       isError: error?.tipsAndStories || null,
     },
     {
-      label: "Wiki",
+      label: `Wiki of ${destination}`,
       Component: WikiCard,
       data: results?.wiki || null,
       isLoading: loading?.wiki || false,
@@ -198,6 +199,18 @@ const ResultsSection = ({
         {tabData.map((tab, index) => (
           <Tab
             key={index}
+            sx={{
+              backdropFilter: "blur(10px)",
+              backgroundColor: "rgba(255,255,255,0.25)",
+              borderRadius: "12px",
+              mx: 0.5,
+              color: "white",
+              "&.Mui-selected": {
+                backgroundColor: "rgba(255,255,255,0.35)",
+                color: "#fff",
+                fontWeight: 700,
+              },
+            }}
             label={
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <span>{tab.label}</span>
@@ -228,15 +241,19 @@ const ResultsSection = ({
           />
         ))}
       </Tabs>
-      {/* Render content based on active tab */}
-      {activeTab < 4
-        ? renderContent(
-            tabData[activeTab].Component,
-            tabData[activeTab].data,
-            tabData[activeTab].isLoading,
-            tabData[activeTab].isError
-          )
-        : renderWikiContent()}
+
+      {/* Content wrapper */}
+      <Box>
+        {/* Render content based on active tab */}
+        {activeTab < 4
+          ? renderContent(
+              tabData[activeTab].Component,
+              tabData[activeTab].data,
+              tabData[activeTab].isLoading,
+              tabData[activeTab].isError
+            )
+          : renderWikiContent()}
+      </Box>
     </Box>
   );
 };

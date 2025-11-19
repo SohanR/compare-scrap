@@ -39,7 +39,7 @@ const WikiCard = ({ wikiData }) => {
           <CardMedia
             component="img"
             height="300"
-            image={wikiData.thumbnail.source}
+            image={wikiData.originalimage.source}
             alt={wikiData.title}
             sx={{
               objectFit: "cover",
