@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Box, Container } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import {
   FaPlane,
   FaHotel,
@@ -53,13 +53,15 @@ const LandingPage = () => {
     {
       icon: FaCheckCircle,
       title: "Comprehensive",
-      description: "We scan flights, hotels, and activities to cover all your needs.",
+      description:
+        "We scan flights, hotels, and activities to cover all your needs.",
       delay: 100,
     },
     {
       icon: FaWallet,
       title: "Best Prices",
-      description: "Our smart algorithms ensure you get the most value for your money.",
+      description:
+        "Our smart algorithms ensure you get the most value for your money.",
       delay: 200,
     },
     {
@@ -89,17 +91,20 @@ const LandingPage = () => {
     {
       icon: FaPlane,
       title: "Flight clarity",
-      description: "Fare drops, bag rules, layovers, and aircraft comfort in one glance.",
+      description:
+        "Fare drops, bag rules, layovers, and aircraft comfort in one glance.",
     },
     {
       icon: FaHotel,
       title: "Stay confidence",
-      description: "Compare neighborhoods, perks, and cancellation at a glance.",
+      description:
+        "Compare neighborhoods, perks, and cancellation at a glance.",
     },
     {
       icon: FaGlobeAmericas,
       title: "Local moments",
-      description: "Curate tours, food stops, and day trips without extra tabs.",
+      description:
+        "Curate tours, food stops, and day trips without extra tabs.",
     },
   ];
 
