@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth");
+const adminRoutes = require("./routes/admin");
 const searchRoutes = require("./routes/search");
 const searchHistoryRoutes = require("./routes/searchHistory");
 const settingsRoutes = require("./routes/settings");
@@ -35,6 +36,7 @@ mongoose
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/search-history", searchHistoryRoutes);
 app.use("/api/settings", settingsRoutes);
