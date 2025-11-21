@@ -31,7 +31,7 @@ const amenityIcons = {
   flight: FaPlane,
 };
 
-const ResultCard = ({ item, type, onBookmark }) => {
+const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
   const getAmenityIcon = (amenity) => {
     const IconComponent = amenityIcons[amenity] || FaCoffee;
     return <IconComponent />;
@@ -63,19 +63,21 @@ const ResultCard = ({ item, type, onBookmark }) => {
         }}
       >
         {/* Bookmark Button - top right overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            zIndex: 2,
-            bgcolor: "rgba(255,255,255,0.85)",
-            borderRadius: "50%",
-            boxShadow: 1,
-          }}
-        >
-          <BookmarkButton onBookmark={onBookmark} />
-        </Box>
+        {showBookmark && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 2,
+              bgcolor: "rgba(255,255,255,0.85)",
+              borderRadius: "50%",
+              boxShadow: 1,
+            }}
+          >
+            <BookmarkButton onBookmark={onBookmark} />
+          </Box>
+        )}
 
         <CardMedia
           component="img"

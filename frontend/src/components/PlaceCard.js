@@ -3,7 +3,7 @@ import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import BookmarkButton from "./BookmarkButton";
 
-const PlaceCard = ({ place, onBookmark }) => {
+const PlaceCard = ({ place, onBookmark, showBookmark = true }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -61,20 +61,22 @@ const PlaceCard = ({ place, onBookmark }) => {
         </Box>
 
         {/* Bookmark Button - top right overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            zIndex: 2,
-            bgcolor: "rgba(255,255,255,0.85)",
-            borderRadius: "50%",
-            boxShadow: 1,
-          }}
-          onClick={(e) => e.stopPropagation()} // Prevent card click when bookmarking
-        >
-          <BookmarkButton onBookmark={onBookmark} />
-        </Box>
+        {showBookmark && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 2,
+              bgcolor: "rgba(255,255,255,0.85)",
+              borderRadius: "50%",
+              boxShadow: 1,
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent card click when bookmarking
+          >
+            <BookmarkButton onBookmark={onBookmark} />
+          </Box>
+        )}
       </Card>
     </motion.div>
   );

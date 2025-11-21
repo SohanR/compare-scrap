@@ -8,20 +8,28 @@ import {
   Card,
   CardMedia,
   CardContent,
-  IconButton,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "react-toastify";
 import useAuthStore from "../../../store/authStore";
 
-const ProfileOverview = ({ bookmarks, history }) => {
+const ProfileOverview = ({ bookmarks, history, onRemoveBookmark }) => {
   const user = useAuthStore((s) => s.user);
 
-  const handleRemoveBookmark = (id) => {
-    const updated = bookmarks.filter((b) => b.id !== id);
-    localStorage.setItem("bookmarks", JSON.stringify(updated));
-    toast.success("Bookmark removed");
+  const getBookmarkMeta = (b) => {
+    const title =
+      b?.item?.name ||
+      b?.item?.flightName ||
+      b?.item?.provider ||
+      b?.item?.title ||
+      "Saved item";
+    const subtitle = b?.category || "bookmark";
+    const link = b?.item?.bookingLink || b?.item?.link;
+    const image =
+      b?.item?.imageUrl ||
+      b?.item?.airlineLogos?.[0] ||
+      b?.image ||
+      null;
+    return { title, subtitle, link, image };
   };
 
   return (
@@ -46,37 +54,45 @@ const ProfileOverview = ({ bookmarks, history }) => {
                 result to save it.
               </Typography>
             ) : (
-              bookmarks.slice(0, 3).map((b) => (
-                <Card key={b.id} sx={{ display: "flex", mt: 1 }}>
-                  {b.image && (
+              bookmarks.slice(0, 3).map((b) => {
+                const meta = getBookmarkMeta(b);
+                return (
+                  <Card key={b._id || meta.title} sx={{ display: "flex", mt: 1 }}>
+                    {meta.image && (
                     <CardMedia
                       component="img"
                       sx={{ width: 96 }}
-                      image={b.image}
-                      alt={b.name}
+                      image={meta.image}
+                      alt={meta.title}
                     />
                   )}
                   <CardContent sx={{ flex: 1 }}>
                     <Typography variant="subtitle2" fontWeight={700}>
-                      {b.name}
+                      {meta.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {b.type || "item"}
+                      {meta.subtitle}
                     </Typography>
                     <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                      <Button size="small" href={b.link} target="_blank">
-                        View
-                      </Button>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveBookmark(b.id)}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
+                      {meta.link && (
+                        <Button size="small" href={meta.link} target="_blank">
+                          View
+                        </Button>
+                      )}
+                      {onRemoveBookmark && (
+                        <Button
+                          size="small"
+                          color="secondary"
+                          onClick={() => onRemoveBookmark(b._id)}
+                        >
+                          Remove
+                        </Button>
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
-              ))
+                );
+              })
             )}
           </Paper>
         </Grid>

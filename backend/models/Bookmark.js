@@ -9,7 +9,7 @@ const bookmarkSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["transportation", "hotels", "todo", "tipsAndStories"],
+      enum: ["transportation", "hotels", "todo", "tipsAndStories", "other"],
       required: true,
     },
     index: {

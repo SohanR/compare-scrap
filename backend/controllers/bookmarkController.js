@@ -1,6 +1,12 @@
 const Bookmark = require("../models/Bookmark");
 
-const allowedCategories = ["transportation", "hotels", "todo", "tipsAndStories"];
+const allowedCategories = [
+  "transportation",
+  "hotels",
+  "todo",
+  "tipsAndStories",
+  "other",
+];
 
 // Add a new bookmark
 exports.addBookmark = async (req, res) => {

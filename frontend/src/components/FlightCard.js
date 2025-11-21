@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import { FaPlane } from "react-icons/fa";
 import BookmarkButton from "./BookmarkButton";
 
-const FlightCard = ({ item, onBookmark }) => {
+const FlightCard = ({ item, onBookmark, showBookmark = true }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }}
@@ -35,19 +35,21 @@ const FlightCard = ({ item, onBookmark }) => {
         }}
       >
         {/* Bookmark Button - top right overlay */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            zIndex: 2,
-            bgcolor: "rgba(255,255,255,0.85)",
-            borderRadius: "50%",
-            boxShadow: 1,
-          }}
-        >
-          <BookmarkButton onBookmark={onBookmark} />
-        </Box>
+        {showBookmark && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 2,
+              bgcolor: "rgba(255,255,255,0.85)",
+              borderRadius: "50%",
+              boxShadow: 1,
+            }}
+          >
+            <BookmarkButton onBookmark={onBookmark} />
+          </Box>
+        )}
         <CardMedia
           component="div"
           sx={{

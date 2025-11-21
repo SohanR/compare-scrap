@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Container, Grid, Paper } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
 import ProfileTabs from "../components/profile/ProfileTabs";
 import useAuthStore from "../store/authStore";
-import { getUserSearchHistory } from "../utils/api";
+import {
+  getUserSearchHistory,
+  getUserBookmarks,
+  getUserBookmarksByCategory,
+  deleteBookmark,
+} from "../utils/api";
 
 const ProfilePage = () => {
   const user = useAuthStore((s) => s.user);
@@ -13,34 +18,54 @@ const ProfilePage = () => {
   const [bookmarks, setBookmarks] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Load bookmarks from localStorage
-  useEffect(() => {
-    try {
-      const b = JSON.parse(localStorage.getItem("bookmarks") || "[]");
-      setBookmarks(Array.isArray(b) ? b : []);
-    } catch {
-      setBookmarks([]);
-    }
-  }, []);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const userId = user?.id || user?._id;
 
   // Load search history from API
   useEffect(() => {
-    if (user && user.id) {
+    if (userId) {
       fetchSearchHistory();
+      fetchBookmarks("all");
     }
-  }, [user]);
+  }, [userId]);
 
   const fetchSearchHistory = async () => {
     setLoading(true);
     try {
-      const data = await getUserSearchHistory(user.id);
+      const data = await getUserSearchHistory(userId);
       setHistory(data);
     } catch (err) {
       toast.error("Failed to load search history");
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBookmarks = useCallback(async (category = "all") => {
+    if (!userId) return;
+    setBookmarkLoading(true);
+    try {
+      const data =
+        category === "all"
+          ? await getUserBookmarks(userId)
+          : await getUserBookmarksByCategory(userId, category);
+      setBookmarks(Array.isArray(data) ? data : []);
+    } catch (err) {
+      toast.error("Failed to load bookmarks");
+      console.error(err);
+    } finally {
+      setBookmarkLoading(false);
+    }
+  }, [userId]);
+
+  const handleRemoveBookmark = async (bookmarkId) => {
+    try {
+      await deleteBookmark(bookmarkId);
+      setBookmarks((prev) => prev.filter((b) => b._id !== bookmarkId));
+      toast.success("Bookmark removed");
+    } catch (err) {
+      toast.error(err.message || "Failed to remove bookmark");
     }
   };
 
@@ -70,11 +95,13 @@ const ProfilePage = () => {
                   tab={tab}
                   onTabChange={setTab}
                   bookmarks={bookmarks}
-                  setBookmarks={setBookmarks}
                   history={history}
                   setHistory={setHistory}
                   loading={loading}
                   setLoading={setLoading}
+                  fetchBookmarks={fetchBookmarks}
+                  bookmarkLoading={bookmarkLoading}
+                  onRemoveBookmark={handleRemoveBookmark}
                 />
               </Paper>
             </Grid>

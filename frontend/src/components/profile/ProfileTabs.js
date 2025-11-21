@@ -12,11 +12,13 @@ const ProfileTabs = ({
   tab,
   onTabChange,
   bookmarks,
-  setBookmarks,
   history,
   setHistory,
   loading,
   setLoading,
+  fetchBookmarks,
+  bookmarkLoading,
+  onRemoveBookmark,
 }) => {
   return (
     <>
@@ -31,11 +33,20 @@ const ProfileTabs = ({
       </Tabs>
 
       <TabPanel value={tab} index={0}>
-        <ProfileOverview bookmarks={bookmarks} history={history} />
+        <ProfileOverview
+          bookmarks={bookmarks}
+          history={history}
+          onRemoveBookmark={onRemoveBookmark}
+        />
       </TabPanel>
 
       <TabPanel value={tab} index={1}>
-        <ProfileBookmarks bookmarks={bookmarks} setBookmarks={setBookmarks} />
+        <ProfileBookmarks
+          bookmarks={bookmarks}
+          fetchBookmarks={fetchBookmarks}
+          loading={bookmarkLoading}
+          onRemoveBookmark={onRemoveBookmark}
+        />
       </TabPanel>
 
       <TabPanel value={tab} index={2}>

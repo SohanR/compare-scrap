@@ -253,6 +253,51 @@ export const addBookmark = async (bookmark) => {
   }
 };
 
+export const deleteBookmark = async (bookmarkId) => {
+  try {
+    const response = await api.delete(`/bookmark/${bookmarkId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to delete bookmark"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const getUserBookmarks = async (userId) => {
+  try {
+    const response = await api.get(`/bookmark/user/${userId}`);
+    return response.data.data || [];
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to fetch bookmarks"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
+export const getUserBookmarksByCategory = async (userId, category) => {
+  try {
+    const response = await api.get(
+      `/bookmark/user/${userId}/category/${category}`
+    );
+    return response.data.data || [];
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error ||
+          "Failed to fetch bookmarks for this category"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
 // Wiki API
 export const getWikiSummary = async (destination) => {
   try {
