@@ -74,7 +74,11 @@ const ProfileBookmarks = ({
       return (
         <Box key={bookmark._id} sx={wrapperStyles}>
           {overlayRemove}
-          <ResultCard item={bookmark.item} type="hotel" showBookmark={false} />
+          <ResultCard
+            item={bookmark.item}
+            type="hotel"
+            showBookmark={false}
+          />
         </Box>
       );
     }

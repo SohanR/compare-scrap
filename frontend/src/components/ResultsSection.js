@@ -26,6 +26,7 @@ const ResultsSection = ({
   onBookmark,
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [bookmarkedKeys, setBookmarkedKeys] = useState([]);
   const messages = [
     "Please wait, we are scraping data",
     "Scraping data takes long time sometimes",
@@ -40,6 +41,11 @@ const ResultsSection = ({
       return () => clearInterval(interval);
     }
   }, [loading, messages.length]);
+
+  // Reset bookmark icons when results change (e.g., new search)
+  useEffect(() => {
+    setBookmarkedKeys([]);
+  }, [destination]);
 
   const renderLoadingState = () => (
     <Box className="loading-container">
@@ -91,24 +97,40 @@ const ResultsSection = ({
           transition={{ duration: 0.3 }}
         >
           <Box sx={{ py: 4 }}>
-            {data.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Component
+            {data.map((item, index) => {
+              const key = `${categoryKey || "n/a"}-${index}`;
+              const isBookmarked = bookmarkedKeys.includes(key);
+              return (
+                <motion.div
                   key={index}
-                  {...(Component === PlaceCard ? { place: item } : { item })}
-                  onBookmark={
-                    onBookmark && categoryKey
-                      ? () => onBookmark({ category: categoryKey, index, item })
-                      : undefined
-                  }
-                />
-              </motion.div>
-            ))}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Component
+                    key={index}
+                    {...(Component === PlaceCard ? { place: item } : { item })}
+                    onBookmark={
+                      onBookmark && categoryKey
+                        ? async () => {
+                            const success = await onBookmark({
+                              category: categoryKey,
+                              index,
+                              item,
+                            });
+                            if (success) {
+                              setBookmarkedKeys((prev) =>
+                                prev.includes(key) ? prev : [...prev, key]
+                              );
+                            }
+                          }
+                        : undefined
+                    }
+                    bookmarked={isBookmarked}
+                  />
+                </motion.div>
+              );
+            })}
           </Box>
         </motion.div>
       </AnimatePresence>

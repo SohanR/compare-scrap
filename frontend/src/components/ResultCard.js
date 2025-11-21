@@ -31,7 +31,13 @@ const amenityIcons = {
   flight: FaPlane,
 };
 
-const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
+const ResultCard = ({
+  item,
+  type,
+  onBookmark,
+  showBookmark = true,
+  bookmarked = false,
+}) => {
   const getAmenityIcon = (amenity) => {
     const IconComponent = amenityIcons[amenity] || FaCoffee;
     return <IconComponent />;
@@ -54,7 +60,7 @@ const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
           overflow: "hidden",
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          position: "relative", // for bookmark overlay
+          position: "relative",
           "&:hover": {
             boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
             transform: "translateY(-4px)",
@@ -62,7 +68,6 @@ const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
           },
         }}
       >
-        {/* Bookmark Button - top right overlay */}
         {showBookmark && (
           <Box
             sx={{
@@ -75,7 +80,7 @@ const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
               boxShadow: 1,
             }}
           >
-            <BookmarkButton onBookmark={onBookmark} />
+            <BookmarkButton onBookmark={onBookmark} bookmarked={bookmarked} />
           </Box>
         )}
 
@@ -140,7 +145,7 @@ const ResultCard = ({ item, type, onBookmark, showBookmark = true }) => {
               }}
             >
               <Typography variant="h6" color="primary" fontWeight="bold">
-                ৳
+                �3
                 {typeof item.price === "number"
                   ? item.price.toFixed(2)
                   : item.price}

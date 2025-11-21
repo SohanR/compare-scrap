@@ -14,7 +14,12 @@ import { motion } from "framer-motion";
 import { FaPlane } from "react-icons/fa";
 import BookmarkButton from "./BookmarkButton";
 
-const FlightCard = ({ item, onBookmark, showBookmark = true }) => {
+const FlightCard = ({
+  item,
+  onBookmark,
+  showBookmark = true,
+  bookmarked = false,
+}) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }}
@@ -47,7 +52,7 @@ const FlightCard = ({ item, onBookmark, showBookmark = true }) => {
               boxShadow: 1,
             }}
           >
-            <BookmarkButton onBookmark={onBookmark} />
+            <BookmarkButton onBookmark={onBookmark} bookmarked={bookmarked} />
           </Box>
         )}
         <CardMedia

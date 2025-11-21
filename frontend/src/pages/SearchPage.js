@@ -175,12 +175,12 @@ const SearchPage = () => {
     const userId = user?.id || user?._id;
     if (!userId) {
       toast.error("Please log in to save bookmarks.");
-      return;
+      return false;
     }
 
     if (!lastSearchData) {
       toast.error("No search context available. Please run a search first.");
-      return;
+      return false;
     }
 
     const bookmarkPayload = {
@@ -212,9 +212,11 @@ const SearchPage = () => {
         bookmarkPayload,
       ]);
       toast.success("Saved to bookmarks");
+      return true;
     } catch (err) {
       console.error("Failed to save bookmark:", err);
       toast.error(err.message || "Failed to save bookmark");
+      return false;
     }
   };
 

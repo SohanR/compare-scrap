@@ -3,7 +3,12 @@ import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import BookmarkButton from "./BookmarkButton";
 
-const PlaceCard = ({ place, onBookmark, showBookmark = true }) => {
+const PlaceCard = ({
+  place,
+  onBookmark,
+  showBookmark = true,
+  bookmarked = false,
+}) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -74,7 +79,7 @@ const PlaceCard = ({ place, onBookmark, showBookmark = true }) => {
             }}
             onClick={(e) => e.stopPropagation()} // Prevent card click when bookmarking
           >
-            <BookmarkButton onBookmark={onBookmark} />
+            <BookmarkButton onBookmark={onBookmark} bookmarked={bookmarked} />
           </Box>
         )}
       </Card>
