@@ -8,6 +8,7 @@ const searchRoutes = require("./routes/search");
 const searchHistoryRoutes = require("./routes/searchHistory");
 const settingsRoutes = require("./routes/settings");
 const bookmarkRoutes = require("./routes/bookmark");
+const trendingRoutes = require("./routes/trending");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +39,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/search-history", searchHistoryRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/bookmark", bookmarkRoutes);
+app.use("/api/trending", trendingRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
