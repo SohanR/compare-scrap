@@ -15,6 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FaPlane, FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
 import Autosuggest from "react-autosuggest";
 import airportData from "../utils/airport.json";
+import { toast } from "react-toastify";
 
 // Helper: Build airport suggestion list [{ city, iata, name }]
 const airportList = Object.entries(airportData)
@@ -99,6 +100,14 @@ const SearchForm = ({ onSearch, isSearching }) => {
     if (!fromObj || !toObj) {
       return;
     }
+
+    const fromCity = fromObj.city?.toLowerCase();
+    const toCity = toObj.city?.toLowerCase();
+    if (fromCity && toCity && fromCity === toCity) {
+      toast.error("Current location and destination cannot be the same.");
+      return;
+    }
+
     const payload = {
       from: fromObj,
       to: toObj,
@@ -246,7 +255,7 @@ const SearchForm = ({ onSearch, isSearching }) => {
                     <TextField
                       {...inputProps}
                       fullWidth
-                      label="From"
+                      label="Current Location"
                       InputProps={{
                         startAdornment: (
                           <FaMapMarkerAlt style={{ marginRight: 8 }} />
@@ -297,7 +306,7 @@ const SearchForm = ({ onSearch, isSearching }) => {
                     <TextField
                       {...inputProps}
                       fullWidth
-                      label="To"
+                      label="Destination"
                       InputProps={{
                         startAdornment: <FaPlane style={{ marginRight: 8 }} />,
                       }}
