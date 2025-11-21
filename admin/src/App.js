@@ -1,551 +1,114 @@
 /* eslint-disable react/no-unstable-nested-components */
-import { useContext, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { ColorContext } from './ColorContext/darkContext';
-import Home from './Components/Home/Home';
-import { Contexts } from './ContextUser/Contexts';
-import AddHotel from './Pages/AddHotel/AddHotel';
-import AddNew from './Pages/AddNew/AddNew';
-import AddRoom from './Pages/AddRoom/AddRoom';
-import BlogDetail from './Pages/BlogDetail/BlogDetail';
-import Detail from './Pages/Detail/Detail';
-import Hotels from './Pages/Hotels/Hotels';
-import Login from './Pages/Login/Login';
-import AddPhoto from './Pages/PhotoGrapher/AddPhoto';
-import PhotoGrapher from './Pages/PhotoGrapher/PhotoGrapher';
-import Rooms from './Pages/Rooms/Rooms';
-import AddTaxi from './Pages/Taxis/AddTaxi';
-import Taxis from './Pages/Taxis/Taxis';
-import Lists from './Pages/UserLists/UserLists';
-import Order from './Pages/order/Order';
-import AddPackage from './Pages/package/AddPack';
-import Packages from './Pages/package/Packages';
-import './app.scss';
-
-// Dynamicaly change the data for different pages
-const userInpDetails = [
-    {
-        id: 2,
-        name: 'username',
-        lable: 'Username',
-        type: 'text',
-        placeholder: 'John23',
-        required: true,
-        pattern: '^[A-Za-z0-9]{3,12}$',
-        errorMsg: 'Username should be 3-12 characters & should not include any special character!',
-    },
-    {
-        id: 3,
-        name: 'fullname',
-        lable: 'Fullname',
-        type: 'text',
-        placeholder: 'John Smith',
-        required: true,
-        errorMsg: 'Name is required!',
-    },
-    {
-        id: 4,
-        name: 'email',
-        lable: 'Email',
-        type: 'email',
-        placeholder: 'example@email.com',
-        required: true,
-        errorMsg: 'Enter a valid email!',
-    },
-    {
-        id: 5,
-        name: 'password',
-        lable: 'Password',
-        type: 'password',
-        placeholder: 'Password',
-        required: true,
-        pattern: '^(?=.*[0-9])(?=.*[A-Za-z])(?=.*[!@#$%^&*()_+])[A-Za-z0-9!@#$%^&*()_+]{6,20}$',
-        errorMsg:
-            'Password should be 6-20 characters and include at last 1 num, 1 letter, 1 special character!',
-    },
-    {
-        id: 6,
-        name: 'country',
-        lable: 'Address',
-        type: 'text',
-        placeholder: 'Address',
-        required: true,
-        errorMsg: 'Address is required!',
-    },
-];
-const productInpDetails = [
-    {
-        id: 2,
-        name: 'title',
-        lable: 'Title',
-        type: 'text',
-        placeholder: 'Product title',
-        required: true,
-        errorMsg: 'Title is required!',
-    },
-    {
-        id: 3,
-        name: 'description',
-        lable: 'Description',
-        type: 'text',
-        placeholder: 'Product description',
-        required: true,
-        errorMsg: 'Description is required!',
-    },
-    {
-        id: 4,
-        name: 'category',
-        lable: 'Category',
-        type: 'text',
-        placeholder: 'Product category',
-        required: true,
-        errorMsg: 'Category is required!',
-    },
-    {
-        id: 5,
-        name: 'price',
-        lable: 'Price',
-        type: 'number',
-        placeholder: 'Product price',
-        required: true,
-        errorMsg: 'Price is required!',
-    },
-    {
-        id: 6,
-        name: 'stock',
-        lable: 'In Stock',
-        type: 'text',
-        placeholder: 'In Stock',
-        required: true,
-        errorMsg: 'This field is required!',
-    },
-];
-const blogInpDetails = [
-    {
-        id: 1,
-        name: 'title',
-        lable: 'Title',
-        type: 'text',
-        placeholder: 'Blog title',
-        required: true,
-        errorMsg: 'Title is required!',
-    },
-    {
-        id: 2,
-        name: 'desc',
-        lable: 'Description',
-        type: 'text',
-        placeholder: 'Blog description',
-        required: true,
-        errorMsg: 'Description is required!',
-    },
-    {
-        id: 3,
-        name: 'tags',
-        lable: 'Tags',
-        type: 'text',
-        placeholder: 'Travel, Tourist, Communication',
-        required: true,
-        errorMsg: 'Tag is required!',
-    },
-];
-const hotelInpDetails = [
-    {
-        id: 6,
-        name: 'name',
-        lable: 'Name',
-        type: 'text',
-        placeholder: 'Hotel Name',
-        required: true,
-        errorMsg: 'Name is required!',
-    },
-    {
-        id: 7,
-        name: 'type',
-        lable: 'Type',
-        type: 'text',
-        placeholder: 'Hotel, Resort',
-        required: true,
-        errorMsg: 'Type is required!',
-    },
-    {
-        id: 8,
-        name: 'city',
-        lable: 'City',
-        type: 'text',
-        placeholder: 'City',
-        required: true,
-        errorMsg: 'City is required!',
-    },
-    {
-        id: 1,
-        name: 'title',
-        lable: 'Title',
-        type: 'text',
-        placeholder: 'Hotel title',
-        required: true,
-        errorMsg: 'Title is required!',
-    },
-    {
-        id: 2,
-        name: 'desc',
-        lable: 'Description',
-        type: 'text',
-        placeholder: 'Hotel description',
-        required: true,
-        errorMsg: 'Description is required!',
-    },
-    {
-        id: 3,
-        name: 'price',
-        lable: 'Price',
-        type: 'number',
-        placeholder: 'Hotel price',
-        min: 10,
-        max: 1000,
-        required: true,
-        errorMsg: 'Price should be between $ 10-1000!',
-    },
-    {
-        id: 4,
-        name: 'rooms',
-        lable: 'Room',
-        type: 'number',
-        min: 1,
-        max: 10,
-        placeholder: 'Total rooms',
-        required: true,
-        errorMsg: 'Room should be between 1-10!',
-    },
-    {
-        id: 5,
-        name: 'rating',
-        lable: 'Rating',
-        type: 'number',
-        placeholder: 'Rating',
-        min: 5,
-        max: 10,
-        required: true,
-        errorMsg: 'Rating should be between 5-10!',
-    },
-];
-const roomInpDetails = [
-    {
-        id: 1,
-        name: 'title',
-        lable: 'Title',
-        type: 'text',
-        placeholder: 'Hotel title',
-        required: true,
-        errorMsg: 'Title is required!',
-    },
-    {
-        id: 2,
-        name: 'desc',
-        lable: 'Description',
-        type: 'text',
-        placeholder: 'Hotel description',
-        required: true,
-        errorMsg: 'Description is required!',
-    },
-    {
-        id: 3,
-        name: 'price',
-        lable: 'Price',
-        type: 'number',
-        placeholder: 'Hotel price',
-        min: 10,
-        max: 1000,
-        required: true,
-        errorMsg: 'Price should be between $ 10-1000!',
-    },
-    {
-        id: 4,
-        name: 'maxPeople',
-        lable: 'Max people',
-        type: 'number',
-        min: 1,
-        max: 5,
-        placeholder: 'Total rooms',
-        required: true,
-        errorMsg: 'Room should be between 1-10!',
-    },
-];
+import { useContext } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ColorContext } from "./ColorContext/darkContext";
+import Home from "./Components/Home/Home";
+import DataTable from "./Components/DataTable/DataTable";
+import Sidebar from "./Components/Sidebar/Sidebar";
+import Navbar from "./Components/Navbar/Navbar";
+import { Contexts } from "./ContextUser/Contexts";
+import Login from "./Pages/Login/Login";
+import "./app.scss";
 
 function App() {
-    // color state management using react context
-    const { darkMode } = useContext(ColorContext);
-    const [state, setState] = useState(false);
+  // color state management using react context
+  const { darkMode } = useContext(ColorContext);
 
-    // create protected route
-    /**
-     * The ProtectedRoute function checks if a user is logged in and redirects to the login page if not,
-     * otherwise it renders the children components.
-     * @returns The children component is being returned.
-     */
-    function ProtectedRoute({ children }) {
-        const { user } = useContext(Contexts);
-        if (!user) {
-            return <Navigate to="/login" />;
-        }
-
-        return children;
+  // create protected route
+  /**
+   * The ProtectedRoute function checks if a user is logged in and redirects to the login page if not,
+   * otherwise it renders the children components.
+   * @returns The children component is being returned.
+   */
+  function ProtectedRoute({ children }) {
+    const { user } = useContext(Contexts);
+    if (!user) {
+      return <Navigate to="/login" />;
     }
 
-    return (
-        <div className={darkMode ? 'App dark' : 'App'}>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/">
-                        <Route path="login" element={<Login />} />
-                        <Route
-                            index
-                            element={
-                                <ProtectedRoute>
-                                    <Home />
-                                </ProtectedRoute>
-                            }
-                        />
-                        {/* nested users routes */}
-                        <Route path="users">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Lists type="user" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":userId"
-                                element={
-                                    <ProtectedRoute>
-                                        <Detail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddNew
-                                            inputs={userInpDetails}
-                                            title="Add New User"
-                                            type="USER"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
+    return children;
+  }
 
-                        {/* nested hotel routes */}
-                        <Route path="hotels">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Hotels type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":hotelId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddHotel
-                                            inputs={hotelInpDetails}
-                                            title="Add New Hotel"
-                                            type="HOTEL"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
+  const Shell = ({ children }) => (
+    <div className="home">
+      <Sidebar />
+      <div className="home_main">
+        <Navbar />
+        <div className="bg_color" />
+        {children}
+      </div>
+    </div>
+  );
 
-                        {/* nested hotel's room routes */}
-                        <Route path="rooms">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Rooms type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":roomId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddRoom
-                                            inputs={roomInpDetails}
-                                            title="Add New Room"
-                                            type="ROOM"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
-
-                        {/* nested taxis routes */}
-                        <Route path="taxis">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Taxis type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":taxiId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddTaxi
-                                            inputs={roomInpDetails}
-                                            title="Add New Room"
-                                            type="ROOM"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
-
-                        {/* nested photographer routes */}
-                        <Route path="photographers">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <PhotoGrapher type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":photographerId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddPhoto
-                                            inputs={roomInpDetails}
-                                            title="Add New Room"
-                                            type="ROOM"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
-
-                        {/* nested package routes */}
-                        <Route path="packages">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Packages type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":packageId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddPackage
-                                            inputs={roomInpDetails}
-                                            title="Add New Room"
-                                            type="ROOM"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
-
-                        {/* nested blogs routes */}
-                        {/* <Route path="blogs">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Blogs type="blog" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path=":blogId"
-                                element={
-                                    <ProtectedRoute>
-                                        <BlogDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="addnew"
-                                element={
-                                    <ProtectedRoute>
-                                        <AddNew
-                                            inputs={blogInpDetails}
-                                            title="Create New Blog"
-                                            type="BLOG"
-                                        />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route> */}
-
-                        {/* nested product routes */}
-                        <Route path="orders">
-                            <Route
-                                index
-                                element={
-                                    <ProtectedRoute>
-                                        <Order type="room" />
-                                    </ProtectedRoute>
-                                }
-                            />
-                        </Route>
-                    </Route>
-                </Routes>
-            </BrowserRouter>
-        </div>
-    );
+  return (
+    <div className={darkMode ? "App dark" : "App"}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/">
+            <Route path="login" element={<Login />} />
+            <Route
+              index
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <ProtectedRoute>
+                  <Shell>
+                    <DataTable />
+                  </Shell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="bookmarks"
+              element={
+                <ProtectedRoute>
+                  <Shell>
+                    <DataTable />
+                  </Shell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="click-tracker"
+              element={
+                <ProtectedRoute>
+                  <Shell>
+                    <DataTable />
+                  </Shell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="search-history"
+              element={
+                <ProtectedRoute>
+                  <Shell>
+                    <DataTable />
+                  </Shell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="top-destination"
+              element={
+                <ProtectedRoute>
+                  <Shell>
+                    <DataTable />
+                  </Shell>
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
 }
 
 export default App;

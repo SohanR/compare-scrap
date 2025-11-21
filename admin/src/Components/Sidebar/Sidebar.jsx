@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import CreditCardIcon from "@mui/icons-material/CreditCard";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import PersonIcon from "@mui/icons-material/Person";
-import TableChartIcon from "@mui/icons-material/TableChart";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import SearchIcon from "@mui/icons-material/Search";
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { ColorContext } from "../../ColorContext/darkContext";
@@ -16,7 +18,7 @@ function Sidebar() {
     <div className="sidebar">
       <div className="logo">
         <Link to="/" style={{ textDecoration: "none" }}>
-          <h3 className="text_none">Explore&GoDashboard</h3>
+          <h3 className="text_none">TravelGo Admin</h3>
         </Link>
       </div>
 
@@ -29,48 +31,39 @@ function Sidebar() {
             </li>
           </Link>
 
-          <Link to="/users" style={{ textDecoration: "none" }}>
+          <Link to="/Users" style={{ textDecoration: "none" }}>
             <li>
-              <PersonIcon className="icon" /> Users
+              <PeopleAltIcon className="icon" /> Users
             </li>
           </Link>
 
-          <Link to="/hotels" style={{ textDecoration: "none" }}>
+          <Link to="/bookmarks" style={{ textDecoration: "none" }}>
             <li>
-              <TableChartIcon className="icon" /> Rooms
+              <BookmarkIcon className="icon" /> Book marks
             </li>
           </Link>
-          {/* <Link to="/rooms" style={{ textDecoration: 'none' }}>
-                        <li>
-                            <TableChartIcon className="icon" /> Rooms
-                        </li>
-                    </Link> */}
-          <Link to="/taxis" style={{ textDecoration: "none" }}>
+
+          <Link to="/click-tracker" style={{ textDecoration: "none" }}>
             <li>
-              <CreditCardIcon className="icon" /> Taxis
+              <TimelineIcon className="icon" /> Click Tracker
             </li>
           </Link>
-          <Link to="/photographers" style={{ textDecoration: "none" }}>
+          <Link to="/search-history" style={{ textDecoration: "none" }}>
             <li>
-              <CreditCardIcon className="icon" /> Photographers
+              <SearchIcon className="icon" /> Search History
             </li>
           </Link>
-          <Link to="/packages" style={{ textDecoration: "none" }}>
+          <Link to="/top-destination" style={{ textDecoration: "none" }}>
             <li>
-              <CreditCardIcon className="icon" /> Packages
-            </li>
-          </Link>
-          <Link to="/orders" style={{ textDecoration: "none" }}>
-            <li>
-              <CreditCardIcon className="icon" /> Orders
+              <TravelExploreIcon className="icon" /> Top Destination
             </li>
           </Link>
 
           {/* <p className="span">Settings</p>
 
-                    <li>
-                        <LogoutIcon className="icon" /> Log Out
-                    </li> */}
+          <li>
+            <LogoutIcon className="icon" /> Log Out
+          </li> */}
         </ul>
       </div>
     </div>

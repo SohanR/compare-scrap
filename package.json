@@ -6,6 +6,9 @@
         "concurrently": "^8.2.0"
     },
     "scripts": {
-        "start": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+        "start": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\" \"npm start --prefix admin\"",
+        "start:frontend": "npm start --prefix frontend",
+        "start:backend": "npm run dev --prefix backend",
+        "start:admin": "npm start --prefix admin"
     }
 }
