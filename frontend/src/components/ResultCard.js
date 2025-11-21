@@ -31,7 +31,7 @@ const amenityIcons = {
   flight: FaPlane,
 };
 
-const ResultCard = ({ item, type }) => {
+const ResultCard = ({ item, type, onBookmark }) => {
   const getAmenityIcon = (amenity) => {
     const IconComponent = amenityIcons[amenity] || FaCoffee;
     return <IconComponent />;
@@ -47,9 +47,6 @@ const ResultCard = ({ item, type }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* ToastContainer for bookmark notifications */}
-      {/* Only render once per card to avoid duplicates */}
-      <BookmarkButton withToastContainer={true} sx={{ display: "none" }} />
       <Card
         sx={{
           display: "flex",
@@ -77,7 +74,7 @@ const ResultCard = ({ item, type }) => {
             boxShadow: 1,
           }}
         >
-          <BookmarkButton />
+          <BookmarkButton onBookmark={onBookmark} />
         </Box>
 
         <CardMedia

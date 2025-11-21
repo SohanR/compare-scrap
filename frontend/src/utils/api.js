@@ -238,6 +238,21 @@ export const deleteAccount = async (userId, password) => {
   }
 };
 
+// Bookmark API
+export const addBookmark = async (bookmark) => {
+  try {
+    const response = await api.post("/bookmark", bookmark);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(
+        error.response.data.error || "Failed to save bookmark data"
+      );
+    }
+    throw new Error("Network error occurred");
+  }
+};
+
 // Wiki API
 export const getWikiSummary = async (destination) => {
   try {

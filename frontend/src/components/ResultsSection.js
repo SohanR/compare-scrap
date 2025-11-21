@@ -23,6 +23,7 @@ const ResultsSection = ({
   activeTab,
   onTabChange,
   destination,
+  onBookmark,
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = [
@@ -53,7 +54,13 @@ const ResultsSection = ({
     </Box>
   );
 
-  const renderContent = (Component, data, isLoading, isError) => {
+  const renderContent = (
+    Component,
+    data,
+    isLoading,
+    isError,
+    categoryKey = null
+  ) => {
     if (isLoading) {
       return renderLoadingState();
     }
@@ -94,6 +101,11 @@ const ResultsSection = ({
                 <Component
                   key={index}
                   {...(Component === PlaceCard ? { place: item } : { item })}
+                  onBookmark={
+                    onBookmark && categoryKey
+                      ? () => onBookmark({ category: categoryKey, index, item })
+                      : undefined
+                  }
                 />
               </motion.div>
             ))}
@@ -148,6 +160,7 @@ const ResultsSection = ({
       data: results?.transportation || [],
       isLoading: loading?.transportation || false,
       isError: error?.transportation || null,
+      category: "transportation",
     },
     {
       label: `Hotels in ${destination}`,
@@ -155,6 +168,7 @@ const ResultsSection = ({
       data: results?.hotels || [],
       isLoading: loading?.hotels || false,
       isError: error?.hotels || null,
+      category: "hotels",
     },
     {
       label: `Things to Do in ${destination}`,
@@ -162,6 +176,7 @@ const ResultsSection = ({
       data: results?.todo || [],
       isLoading: loading?.todo || false,
       isError: error?.todo || null,
+      category: "todo",
     },
     {
       label: "Blogs & Articles",
@@ -169,6 +184,7 @@ const ResultsSection = ({
       data: results?.tipsAndStories || [],
       isLoading: loading?.tipsAndStories || false,
       isError: error?.tipsAndStories || null,
+      category: "tipsAndStories",
     },
     {
       label: `Wiki of ${destination}`,
@@ -250,7 +266,8 @@ const ResultsSection = ({
               tabData[activeTab].Component,
               tabData[activeTab].data,
               tabData[activeTab].isLoading,
-              tabData[activeTab].isError
+              tabData[activeTab].isError,
+              tabData[activeTab].category
             )
           : renderWikiContent()}
       </Box>

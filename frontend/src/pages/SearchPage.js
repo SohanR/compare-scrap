@@ -9,6 +9,8 @@ import {
 import SearchForm from "../components/SearchForm";
 import ResultsSection from "../components/ResultsSection";
 import { motion } from "framer-motion";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   searchTransportation,
   searchHotels,
@@ -16,6 +18,7 @@ import {
   searchTipsAndStories,
   getWikiSummary,
   createSearchHistory,
+  addBookmark,
 } from "../utils/api";
 import useAuthStore from "../store/authStore";
 
@@ -46,6 +49,8 @@ const SearchPage = () => {
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(null);
+  const [bookmarkedItems, setBookmarkedItems] = useState([]);
+  const [lastSearchData, setLastSearchData] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const user = useAuthStore((state) => state.user);
@@ -61,6 +66,7 @@ const SearchPage = () => {
 
   const handleSearch = async (searchData) => {
     setIsSearching(true);
+    setLastSearchData(searchData);
     setResults({
       transportation: [],
       hotels: [],
@@ -165,6 +171,53 @@ const SearchPage = () => {
     }
   };
 
+  const handleBookmark = async ({ category, index, item }) => {
+    const userId = user?.id || user?._id;
+    if (!userId) {
+      toast.error("Please log in to save bookmarks.");
+      return;
+    }
+
+    if (!lastSearchData) {
+      toast.error("No search context available. Please run a search first.");
+      return;
+    }
+
+    const bookmarkPayload = {
+      userId,
+      category,
+      index,
+      item,
+      search: {
+        from: lastSearchData.from,
+        to: lastSearchData.to,
+        date: lastSearchData.date,
+        returnDate: lastSearchData.returnDate,
+        tripType: lastSearchData.tripType,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      await addBookmark(bookmarkPayload);
+      setBookmarkedItems((prev) => {
+        const updated = [...prev, bookmarkPayload];
+        console.log("Bookmark saved to backend:", bookmarkPayload);
+        console.log("All bookmarks queued for backend:", updated);
+        return updated;
+      });
+      // Debug: show current bookmarks array after click
+      console.log("Bookmarked items array after click:", [
+        ...bookmarkedItems,
+        bookmarkPayload,
+      ]);
+      toast.success("Saved to bookmarks");
+    } catch (err) {
+      console.error("Failed to save bookmark:", err);
+      toast.error(err.message || "Failed to save bookmark");
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -230,12 +283,14 @@ const SearchPage = () => {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   destination={destination}
+                  onBookmark={handleBookmark}
                 />
               </Box>
             )}
           </Box>
         </motion.div>
       </Container>
+      <ToastContainer position="top-center" />
     </Box>
   );
 };
