@@ -42,7 +42,44 @@ const fetchCityImage = async (city) => {
   )}`;
   try {
     const { data } = await axios.get(url);
-    return data?.originalimage?.source || null;
+    if (data?.originalimage?.source) return data.originalimage.source;
+    if (data?.thumbnail?.source) return data.thumbnail.source;
+
+    // Retry with title-cased city if first attempt had no image
+    const titleCased = city
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    if (titleCased !== city) {
+      const retryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+        titleCased
+      )}`;
+      const retry = await axios.get(retryUrl);
+      if (retry.data?.originalimage?.source) return retry.data.originalimage.source;
+      if (retry.data?.thumbnail?.source) return retry.data.thumbnail.source;
+    }
+
+    // Fallback: search API to grab a page with a thumbnail
+    const searchUrl = `https://en.wikipedia.org/w/api.php`;
+    const searchRes = await axios.get(searchUrl, {
+      params: {
+        action: "query",
+        format: "json",
+        origin: "*",
+        prop: "pageimages",
+        piprop: "original|thumbnail",
+        pithumbsize: 1200,
+        generator: "search",
+        gsrlimit: 1,
+        gsrsearch: city,
+      },
+    });
+    const pages = searchRes.data?.query?.pages || {};
+    const firstPage = Object.values(pages)[0];
+    if (firstPage?.original?.source) return firstPage.original.source;
+    if (firstPage?.thumbnail?.source) return firstPage.thumbnail.source;
+
+    return null;
   } catch (err) {
     console.error(`Failed to fetch image for ${city}:`, err.message);
     return null;

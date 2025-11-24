@@ -15,7 +15,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import CoverImage from "../asset/cover.png";
 import smallImage from "../asset/cover2.png";
-import FeaturedDestinations from "../components/FeaturedDestinations";
+import FeaturedDestinations from "../components/landing/FeaturedDestinations";
 import HeroSection from "../components/landing/HeroSection";
 import ComparisonPillars from "../components/landing/ComparisonPillars";
 import HowItWorksSection from "../components/landing/HowItWorksSection";

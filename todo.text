@@ -1,0 +1,37 @@
+
+4. todo and blogs store in db - 10m
+5. search result sorting
+
+
+admin
+1. login admin panel -
+2. user list -
+3. user role manage - 
+4. user book mark -
+5. user link click 
+6. user search history -
+7. most search -
+8. top destination -
+
+frontend
+home page
+search page
+user can search by from,to and date
+search result section for flight, hotels, todo, blogs
+user can book mark after login only
+user can click any search result to go to original website for booking and reading
+user log in
+user view book mark
+user view search history
+user settings 
+
+
+
+
+
+////
+
+trending image
+price dollar
+result page filer/sorting
+todo and blogs store in db
