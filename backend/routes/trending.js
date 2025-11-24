@@ -1,15 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const trendingController = require("../controllers/trendingController");
+const adminAuth = require("../middleware/adminAuth");
 
 // All-time destinations sorted by most searched
-router.get("/destinations", trendingController.getAllDestinations);
+router.get("/destinations", adminAuth, trendingController.getAllDestinations);
 
 // Last 30 days
-router.get("/destinations/30d", trendingController.getDestinationsLast30Days);
+router.get(
+  "/destinations/30d",
+  adminAuth,
+  trendingController.getDestinationsLast30Days
+);
 
 // Last 7 days
-router.get("/destinations/7d", trendingController.getDestinationsLast7Days);
+router.get(
+  "/destinations/7d",
+  adminAuth,
+  trendingController.getDestinationsLast7Days
+);
 
 // Top 6 destinations with images (all-time) for homepage
 router.get(

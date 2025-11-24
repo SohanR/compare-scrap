@@ -10,6 +10,7 @@ import Login from "./Pages/Login/Login";
 import Users from "./Pages/UserLists/Users";
 import Bookmarks from "./Pages/Bookmarks/Bookmarks";
 import SearchHistory from "./Pages/SearchHistory/SearchHistory";
+import Destinations from "./Pages/Destinations/Destinations";
 import useAdminAuthStore from "./store/adminAuthStore";
 import "./app.scss";
 
@@ -102,7 +103,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Shell>
-                    <DataTable />
+                    <Destinations />
                   </Shell>
                 </ProtectedRoute>
               }
