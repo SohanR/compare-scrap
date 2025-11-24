@@ -12,10 +12,17 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { FaCompass, FaGlobeAmericas, FaMapPin, FaPlane, FaSuitcaseRolling } from "react-icons/fa";
+import {
+  FaCompass,
+  FaGlobeAmericas,
+  FaMapPin,
+  FaPlane,
+  FaSuitcaseRolling,
+} from "react-icons/fa";
 
 const HeroSection = ({
   coverImage,
+  smallImage,
   explorerVibes,
   stats,
   onPrimaryClick,
@@ -29,7 +36,8 @@ const HeroSection = ({
       sx={{
         position: "relative",
         overflow: "hidden",
-        background: "linear-gradient(135deg, #0d1242 0%, #0f6e7c 50%, #14b3c6 100%)",
+        background:
+          "linear-gradient(135deg, #0d1242 0%, #0f6e7c 50%, #14b3c6 100%)",
         color: "white",
         py: { xs: 8, md: 12 },
       }}
@@ -52,7 +60,8 @@ const HeroSection = ({
           right: -80,
           width: 320,
           height: 320,
-          background: "radial-gradient(circle, rgba(255,255,255,0.35), transparent 60%)",
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.35), transparent 60%)",
           filter: "blur(6px)",
         }}
       />
@@ -81,7 +90,9 @@ const HeroSection = ({
                 Design the trip you want, with live comparisons in one place.
               </Typography>
               <Typography variant="h6" sx={{ maxWidth: 640, opacity: 0.92 }}>
-                Flights, stays, and experiences brought together with clear options, real-time prices, and tools made for people who actually travel.
+                Flights, stays, and experiences brought together with clear
+                options, real-time prices, and tools made for people who
+                actually travel.
               </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <Button
@@ -94,10 +105,12 @@ const HeroSection = ({
                     borderRadius: "16px",
                     fontWeight: "bold",
                     fontSize: "1rem",
-                    background: "linear-gradient(120deg, #ffcc70 0%, #ff885b 50%, #ff5c8d 100%)",
+                    background:
+                      "linear-gradient(120deg, #ffcc70 0%, #ff885b 50%, #ff5c8d 100%)",
                     boxShadow: "0 18px 40px rgba(255, 136, 91, 0.35)",
                     "&:hover": {
-                      background: "linear-gradient(120deg, #ffd27f 0%, #ff9770 50%, #ff6da0 100%)",
+                      background:
+                        "linear-gradient(120deg, #ffd27f 0%, #ff9770 50%, #ff6da0 100%)",
                     },
                   }}
                 >
@@ -167,7 +180,8 @@ const HeroSection = ({
               sx={{
                 borderRadius: "20px",
                 overflow: "hidden",
-                background: "linear-gradient(140deg, rgba(255,255,255,0.95), rgba(240,248,255,0.92))",
+                background:
+                  "linear-gradient(140deg, rgba(255,255,255,0.95), rgba(240,248,255,0.92))",
                 boxShadow: "0 35px 80px rgba(10, 46, 78, 0.35)",
                 position: "relative",
                 p: 3,
@@ -177,7 +191,7 @@ const HeroSection = ({
                 sx={{
                   height: 220,
                   borderRadius: "14px",
-                  backgroundImage: `url(${coverImage})`,
+                  backgroundImage: `url(${smallImage})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   position: "relative",
@@ -188,7 +202,8 @@ const HeroSection = ({
                   sx={{
                     position: "absolute",
                     inset: 0,
-                    background: "linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.45))",
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.45))",
                   }}
                 />
                 <Typography
@@ -225,14 +240,20 @@ const HeroSection = ({
                 </Box>
               </Box>
               <Box sx={{ mt: 3 }}>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ mb: 1 }}
+                >
                   <FaSuitcaseRolling color={theme.palette.primary.main} />
                   <Typography variant="subtitle1" fontWeight="bold">
                     Build your mix
                   </Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary">
-                  Flights, stays, transfers, and experiences stack together so you can book the exact combo you want without extra tabs.
+                  Flights, stays, transfers, and experiences stack together so
+                  you can book the exact combo you want without extra tabs.
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Grid container spacing={2}>

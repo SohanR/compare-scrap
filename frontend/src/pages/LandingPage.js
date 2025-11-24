@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import CoverImage from "../asset/cover.png";
+import smallImage from "../asset/cover2.png";
 import FeaturedDestinations from "../components/FeaturedDestinations";
 import HeroSection from "../components/landing/HeroSection";
 import ComparisonPillars from "../components/landing/ComparisonPillars";
@@ -118,6 +119,7 @@ const LandingPage = () => {
     <Box>
       <HeroSection
         coverImage={CoverImage}
+        smallImage={smallImage}
         explorerVibes={explorerVibes}
         stats={stats}
         onPrimaryClick={() => navigate("/search")}
