@@ -28,6 +28,7 @@
   .item_lists {
     display: flex;
     align-items: center;
+    gap: 12px;
 
     .item {
       margin-left: 15px;
@@ -66,6 +67,34 @@
         border-radius: 50%;
         object-fit: cover;
         cursor: pointer;
+      }
+    }
+
+    .logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ff8b8b;
+      background: linear-gradient(135deg, #ff6b6b, #ff9f43);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.25);
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.35);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      svg {
+        font-size: 18px;
       }
     }
   }

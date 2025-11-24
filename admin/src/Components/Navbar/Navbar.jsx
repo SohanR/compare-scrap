@@ -1,8 +1,10 @@
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import SearchIcon from '@mui/icons-material/Search';
-import React, { useContext } from 'react';
-import { ColorContext } from '../../ColorContext/darkContext';
+import LogoutIcon from "@mui/icons-material/Logout";
+import React, { useContext } from "react";
+import { ColorContext } from "../../ColorContext/darkContext";
+import useAdminAuthStore from "../../store/adminAuthStore";
 
 // import sass file
 import './navbar.scss';
@@ -12,6 +14,7 @@ import './navbar.scss';
 function Navbar() {
     // color state management using react context
     const { darkMode, dispatch } = useContext(ColorContext);
+    const logout = useAdminAuthStore((s) => s.logout);
 
     return (
         <div className="navbar">
@@ -35,6 +38,17 @@ function Navbar() {
                         />
                     )}
                 </div>
+
+                <button
+                    type="button"
+                    className="logout-btn"
+                    onClick={() => {
+                        logout();
+                        window.location.href = "/login";
+                    }}
+                >
+                    <LogoutIcon /> Log Out
+                </button>
 
                 {/* <div className="item">
                     <NotificationsNoneIcon className="item_icon" />

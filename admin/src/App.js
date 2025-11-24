@@ -6,8 +6,8 @@ import Home from "./Components/Home/Home";
 import DataTable from "./Components/DataTable/DataTable";
 import Sidebar from "./Components/Sidebar/Sidebar";
 import Navbar from "./Components/Navbar/Navbar";
-import { Contexts } from "./ContextUser/Contexts";
 import Login from "./Pages/Login/Login";
+import useAdminAuthStore from "./store/adminAuthStore";
 import "./app.scss";
 
 function App() {
@@ -20,11 +20,11 @@ function App() {
    * otherwise it renders the children components.
    * @returns The children component is being returned.
    */
-  function ProtectedRoute({ children }) {
-    const { user } = useContext(Contexts);
-    if (!user) {
-      return <Navigate to="/login" />;
-    }
+    function ProtectedRoute({ children }) {
+        const isLoggedIn = useAdminAuthStore((s) => s.isLoggedIn);
+        if (!isLoggedIn) {
+            return <Navigate to="/login" />;
+        }
 
     return children;
   }
