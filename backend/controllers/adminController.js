@@ -318,3 +318,87 @@ exports.adminDeleteBookmarks = async (req, res) => {
       .json({ message: "Failed to delete bookmarks", error: error.message });
   }
 };
+
+exports.getSearchHistoryItems = async (req, res) => {
+  try {
+    const { range = "all", limit = 50, skip = 0 } = req.query;
+
+    const now = new Date();
+    let since = null;
+    if (range === "30") {
+      since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else if (range === "7") {
+      since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+
+    const matchStage = {};
+    if (since) {
+      matchStage.createdAt = { $gte: since };
+    }
+
+    const pipeline = [
+      Object.keys(matchStage).length ? { $match: matchStage } : null,
+      {
+        $addFields: {
+          itemKey: {
+            $concat: [
+              { $ifNull: ["$from.city", ""] },
+              "::",
+              { $ifNull: ["$to.city", ""] },
+              "::",
+              { $ifNull: ["$date", ""] },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$itemKey",
+          from: { $first: "$from" },
+          to: { $first: "$to" },
+          date: { $first: "$date" },
+          userIds: { $addToSet: "$userId" },
+          count: { $sum: 1 },
+          latestCreatedAt: { $max: "$createdAt" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userIds",
+          foreignField: "_id",
+          as: "users",
+          pipeline: [
+            { $project: { name: 1, email: 1, role: 1 } },
+            { $sort: { name: 1 } },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          itemKey: "$_id",
+          from: 1,
+          to: 1,
+          date: 1,
+          count: 1,
+          latestCreatedAt: 1,
+          users: 1,
+          userCount: { $size: "$userIds" },
+        },
+      },
+      { $sort: { count: -1, latestCreatedAt: -1 } },
+      { $skip: Number(skip) || 0 },
+      { $limit: Math.min(Number(limit) || 50, 200) },
+    ].filter(Boolean);
+
+    const items = await SearchHistory.aggregate(pipeline);
+    return res.json({ data: items });
+  } catch (error) {
+    console.error("Get search history items failed:", error.message);
+    return res.status(500).json({
+      message: "Failed to fetch search history items",
+      error: error.message,
+    });
+  }
+};

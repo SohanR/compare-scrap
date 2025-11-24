@@ -25,4 +25,11 @@ router.delete(
   adminController.adminDeleteBookmarks
 );
 
+// Search history aggregates
+router.get(
+  "/search-history/items",
+  adminAuth,
+  adminController.getSearchHistoryItems
+);
+
 module.exports = router;

@@ -77,6 +77,33 @@
           background: #ff74b016;
         }
       }
+
+      .range_tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+
+        .range_btn {
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #d7d7ff;
+          background: #f5f6ff;
+          color: #4b3abf;
+          cursor: pointer;
+          transition: 0.2s ease;
+          font-size: 13px;
+
+          &.active {
+            background: #4b3abf;
+            color: #fff;
+            border-color: #4b3abf;
+          }
+
+          &:hover {
+            background: #e9e8ff;
+          }
+        }
+      }
     }
   }
 }
