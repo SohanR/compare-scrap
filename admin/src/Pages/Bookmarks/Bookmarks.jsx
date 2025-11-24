@@ -44,6 +44,28 @@ function Bookmarks() {
         fetchItems();
     }, [fetchItems]);
 
+    const handleDeleteItem = useCallback(
+        async (bookmarkIds) => {
+            if (!bookmarkIds?.length) return;
+            try {
+                await axios.delete(`${baseUrl}/bookmarks`, {
+                    data: { bookmarkIds },
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                setRows((prev) =>
+                    prev.filter(
+                        (row) =>
+                            !row.bookmarkIds ||
+                            !row.bookmarkIds.some((id) => bookmarkIds.includes(id))
+                    )
+                );
+            } catch (err) {
+                setError('Failed to delete bookmarks');
+            }
+        },
+        [token]
+    );
+
     const columns = useMemo(
         () => [
             {
@@ -113,8 +135,29 @@ function Bookmarks() {
                         '-'
                     ),
             },
+            {
+                field: 'action',
+                headerName: 'Action',
+                width: 140,
+                sortable: false,
+                renderCell: (params) =>
+                    params.row.bookmarkIds?.length ? (
+                        <button
+                            type="button"
+                            className="delete_btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteItem(params.row.bookmarkIds);
+                            }}
+                        >
+                            Delete
+                        </button>
+                    ) : (
+                        '-'
+                    ),
+            },
         ],
-        []
+        [handleDeleteItem]
     );
 
     return (

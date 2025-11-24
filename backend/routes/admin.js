@@ -19,5 +19,10 @@ router.get(
   adminAuth,
   adminController.getBookmarkItems
 );
+router.delete(
+  "/bookmarks",
+  adminAuth,
+  adminController.adminDeleteBookmarks
+);
 
 module.exports = router;

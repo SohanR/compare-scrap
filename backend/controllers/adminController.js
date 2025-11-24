@@ -238,6 +238,7 @@ exports.getBookmarkItems = async (req, res) => {
           item: { $first: "$item" },
           category: { $first: "$category" },
           userIds: { $addToSet: "$userId" },
+          bookmarkIds: { $addToSet: "$_id" },
           count: { $sum: 1 },
           latestCreatedAt: { $max: "$createdAt" },
         },
@@ -263,6 +264,7 @@ exports.getBookmarkItems = async (req, res) => {
           count: 1,
           latestCreatedAt: 1,
           users: 1,
+          bookmarkIds: 1,
         },
       },
       ...(search
@@ -291,5 +293,28 @@ exports.getBookmarkItems = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Failed to fetch bookmark items", error: error.message });
+  }
+};
+
+exports.adminDeleteBookmarks = async (req, res) => {
+  try {
+    const { bookmarkIds } = req.body || {};
+    if (!bookmarkIds || !Array.isArray(bookmarkIds) || bookmarkIds.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "bookmarkIds array is required" });
+    }
+
+    const ids = bookmarkIds.map((id) => String(id));
+    const result = await Bookmark.deleteMany({ _id: { $in: ids } });
+    return res.json({
+      message: "Bookmarks deleted",
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (error) {
+    console.error("Admin delete bookmarks failed:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Failed to delete bookmarks", error: error.message });
   }
 };
