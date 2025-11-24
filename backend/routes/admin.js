@@ -6,11 +6,18 @@ const adminAuth = require("../middleware/adminAuth");
 // Admin login
 router.post("/login", adminController.adminLogin);
 
-// Promote a user to admin
-router.put("/users/:userId/role", adminAuth, adminController.promoteToAdmin);
+// Promote/demote user role
+router.put("/users/:userId/role", adminAuth, adminController.toggleUserRole);
 
 // Admin-protected user management
 router.get("/users", adminAuth, adminController.getAllUsers);
 router.delete("/users/:userId", adminAuth, adminController.deleteUser);
+
+// Bookmark aggregates
+router.get(
+  "/bookmarks/items",
+  adminAuth,
+  adminController.getBookmarkItems
+);
 
 module.exports = router;

@@ -7,6 +7,8 @@ import DataTable from "./Components/DataTable/DataTable";
 import Sidebar from "./Components/Sidebar/Sidebar";
 import Navbar from "./Components/Navbar/Navbar";
 import Login from "./Pages/Login/Login";
+import Users from "./Pages/UserLists/Users";
+import Bookmarks from "./Pages/Bookmarks/Bookmarks";
 import useAdminAuthStore from "./store/adminAuthStore";
 import "./app.scss";
 
@@ -20,11 +22,11 @@ function App() {
    * otherwise it renders the children components.
    * @returns The children component is being returned.
    */
-    function ProtectedRoute({ children }) {
-        const isLoggedIn = useAdminAuthStore((s) => s.isLoggedIn);
-        if (!isLoggedIn) {
-            return <Navigate to="/login" />;
-        }
+  function ProtectedRoute({ children }) {
+    const isLoggedIn = useAdminAuthStore((s) => s.isLoggedIn);
+    if (!isLoggedIn) {
+      return <Navigate to="/login" />;
+    }
 
     return children;
   }
@@ -59,7 +61,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Shell>
-                    <DataTable />
+                    <Users />
                   </Shell>
                 </ProtectedRoute>
               }
@@ -69,7 +71,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Shell>
-                    <DataTable />
+                    <Bookmarks />
                   </Shell>
                 </ProtectedRoute>
               }

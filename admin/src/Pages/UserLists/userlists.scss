@@ -1,11 +1,11 @@
 .list_page {
-  display: grid;
-  grid-template-columns: 17% 83%;
-  justify-content: center;
   width: 100%;
 
   .list_page_main {
+    width: 100%;
+
     .data_table {
+      width: 100%;
       padding: 10px 10px;
 
       .btnn {
@@ -33,6 +33,103 @@
           }
         }
       }
+
+      .user-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .pill {
+          padding: 4px 8px;
+          background: #f0f4ff;
+          color: #333;
+          border-radius: 12px;
+          font-size: 12px;
+        }
+      }
+
+      .pill_button {
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #7551f8;
+        background: #f4f0ff;
+        color: #4b3abf;
+        cursor: pointer;
+        transition: 0.2s ease;
+        font-size: 13px;
+
+        &:hover {
+          background: #e9e2ff;
+        }
+      }
     }
+  }
+}
+
+.modal_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+
+  .modal_card {
+    background: #fff;
+    width: 520px;
+    max-height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal_header {
+    padding: 16px 18px 8px;
+    border-bottom: 1px solid #f0f0f0;
+
+    h4 {
+      margin: 0;
+    }
+    .modal_sub {
+      margin: 6px 0 0;
+      color: #666;
+      font-size: 13px;
+    }
+  }
+
+  .modal_body {
+    padding: 12px 18px;
+    overflow: auto;
+    flex: 1;
+  }
+
+  .user_modal_list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f4f4f4;
+
+      .user_name {
+        font-weight: 600;
+      }
+      .user_email {
+        color: #555;
+      }
+    }
+  }
+
+  .modal_footer {
+    padding: 12px 18px 14px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
   }
 }
