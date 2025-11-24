@@ -5,6 +5,8 @@ $text_color: #3d3c42;
   border-right: 1px solid #eee;
   height: 100vh;
   margin-left: 10px;
+  display: flex;
+  flex-direction: column;
 
   .logo {
     cursor: pointer;
@@ -74,5 +76,9 @@ $text_color: #3d3c42;
         background-color: #333;
       }
     }
+  }
+
+  .sidebar-footer {
+    display: none;
   }
 }

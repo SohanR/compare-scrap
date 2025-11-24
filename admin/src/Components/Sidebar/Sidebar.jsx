@@ -5,14 +5,17 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import SearchIcon from "@mui/icons-material/Search";
 import TravelExploreIcon from "@mui/icons-material/TravelExplore";
+import LogoutIcon from "@mui/icons-material/Logout";
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { ColorContext } from "../../ColorContext/darkContext";
+import useAdminAuthStore from "../../store/adminAuthStore";
 import "./Sidebar.scss";
 
 function Sidebar() {
   // color state management using react context
   const { darkMode, dispatch } = useContext(ColorContext);
+  const logout = useAdminAuthStore((s) => s.logout);
 
   return (
     <div className="sidebar">
