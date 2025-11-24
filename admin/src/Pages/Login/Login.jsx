@@ -1,19 +1,20 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react/jsx-props-no-spreading */
-import axios from 'axios';
-import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Contexts } from '../../ContextUser/Contexts';
-import { baseUrl } from '../../utils/base';
-import './Login.scss';
+import axios from "axios";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAdminAuthStore from "../../store/adminAuthStore";
+import { baseUrl } from "../../utils/base";
+import "./Login.scss";
 
 const index = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loginLoading, setLoginLoading] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loginLoading, setLoginLoading] = useState(false);
     const [err, setErr] = useState(false);
-    const nevigate = useNavigate();
-    const { loading, dispatch } = useContext(Contexts);
+    const navigate = useNavigate();
+    const login = useAdminAuthStore((s) => s.login);
+    const isLoading = loginLoading;
 
     /**
      * The handleSubmit function is used to handle form submission for user login, making an API call to
@@ -25,23 +26,22 @@ const index = () => {
             email,
             password,
         };
-        dispatch({ type: 'LOGIN_START' });
         setLoginLoading(true);
 
         try {
-            const res = await axios.post(`${baseUrl}/user/login`, inpVal);
+            const res = await axios.post(`${baseUrl}/login`, inpVal);
+            const { token, user } = res.data;
 
-            if (res.data.message.isAdmin) {
-                dispatch({ type: 'LOGIN_SUCCESS', payload: res.data.message.details });
-                nevigate('/');
-                setLoginLoading(false);
-            } else {
-                dispatch({ type: 'LOGIN_FAILURE' });
+            if (!user || user.role !== "admin") {
                 setErr(true);
                 setLoginLoading(false);
+                return;
             }
+
+            login(token, user);
+            navigate("/");
+            setLoginLoading(false);
         } catch (error) {
-            dispatch({ type: 'LOGIN_FAILURE' });
             setErr(true);
             setLoginLoading(false);
         }
@@ -70,9 +70,9 @@ const index = () => {
 
                         <input
                             type="submit"
-                            value={loginLoading ? 'Loading..' : 'Log In'}
+                            value={isLoading ? "Loading.." : "Log In"}
                             className="submit_btn"
-                            disabled={loading}
+                            disabled={isLoading}
                         />
                         {err && (
                             <p style={{ color: 'red', marginBottom: '0px' }}>
