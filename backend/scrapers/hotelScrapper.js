@@ -31,6 +31,8 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
   const browser = await setupBrowser();
   const page = await browser.newPage();
   const hotels = [];
+  const FALLBACK_IMAGE =
+    "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=1200&q=80";
 
   try {
     await page.setUserAgent(randomUseragent.getRandom());
@@ -52,6 +54,11 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
       await new Promise((resolve) => setTimeout(resolve, 1200));
       window.scrollTo(0, 0);
     });
+    // Give images a moment to hydrate
+    await page.waitForTimeout(1200);
+    await page.waitForSelector('[data-testid="property-card"] img', {
+      timeout: 5000,
+    }).catch(() => {});
 
     // Wait for hotels to load
     try {
@@ -86,12 +93,28 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
           item.querySelectorAll('[data-testid="facility-icons"] span'),
           (span) => span.innerText?.trim()
         ),
-        imageUrl:
-          item.querySelector('[data-testid="property-card-desktop-single-image"] img')
-            ?.src ||
-          item.querySelector("img")?.getAttribute("src") ||
-          item.querySelector("img")?.getAttribute("data-src") ||
-          item.querySelector("img")?.getAttribute("srcset")?.split(" ")[0],
+        imageUrl: (() => {
+          const primary =
+            item.querySelector('[data-testid="property-card-desktop-single-image"] img') ||
+            item.querySelector('[data-testid="image"] img') ||
+            item.querySelector('[data-testid="image"]') ||
+            item.querySelector("img");
+          if (!primary) return null;
+          const srcset = primary.getAttribute("srcset");
+          const fallbackSrcset = srcset
+            ? srcset
+                .split(",")
+                .map((s) => s.trim().split(" ")[0])
+                .find((s) => s && s.startsWith("http"))
+            : null;
+          return (
+            primary.getAttribute("src") ||
+            primary.getAttribute("data-src") ||
+            primary.getAttribute("data-lazy") ||
+            primary.getAttribute("data-lazy-src") ||
+            fallbackSrcset
+          );
+        })() || FALLBACK_IMAGE,
         description: item.querySelector('[data-testid="description"]')?.innerText?.trim(),
       }));
     });

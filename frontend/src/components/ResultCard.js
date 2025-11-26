@@ -59,6 +59,10 @@ const ResultCard = ({
     return item.type === "bus" ? <FaBus /> : <FaPlane />;
   };
 
+  const displayImage =
+    item.imageUrl ||
+    "https://images.unsplash.com/photo-1501117716987-c8e1ecb210af?auto=format&fit=crop&w=1200&q=80";
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -99,7 +103,7 @@ const ResultCard = ({
         <CardMedia
           component="img"
           sx={{ width: 200, objectFit: "cover" }}
-          image={item.imageUrl}
+          image={displayImage}
           alt={item.name}
         />
 
