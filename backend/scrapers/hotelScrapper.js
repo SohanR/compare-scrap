@@ -19,7 +19,7 @@ async function setupBrowser() {
 }
 
 async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
-  console.log(`   🏨 [SCRAPER] Starting Booking.com scraper`);
+  console.log(`   [SCRAPER] Starting Booking.com scraper`);
 
   // Adjust checkOutDate if it is the same as checkInDate
   if (checkInDate === checkOutDate) {
@@ -41,19 +41,26 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
       to
     )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0&selected_currency=usd`;
 
-    console.log(`   🌐 [NAV] ${url}`);
+    console.log(`   [NAV] ${url}`);
 
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60000 });
-    console.log(`   ✓ [PAGE] Content loaded successfully`);
+    console.log(`   [PAGE] Content loaded successfully`);
+
+    // Trigger lazy-loaded assets (images) by scrolling down/up
+    await page.evaluate(async () => {
+      window.scrollTo(0, document.body.scrollHeight);
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      window.scrollTo(0, 0);
+    });
 
     // Wait for hotels to load
     try {
       await page.waitForSelector('[data-testid="property-card"]', {
         timeout: 20000,
       });
-      console.log(`   ✓ [DATA] Hotel cards found on page`);
+      console.log(`   [DATA] Hotel cards found on page`);
     } catch (error) {
-      console.error(`   ❌ [ERROR] Hotel cards not found on page`);
+      console.error(`   [ERROR] Hotel cards not found on page`);
       throw error;
     }
 
@@ -67,32 +74,31 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
               .querySelector('[data-testid="price-and-discounted-price"]')
               ?.textContent?.match(/[\d,]+(\.\d+)?/g)?.[0]
               ?.replace(/,/g, "")
-          ) || null, // Ensure price is null if not found
+          ) || null,
         currency: "USD",
         rating:
           item
             .querySelector('[data-testid="review-score"] .f63b14ab7a')
-            ?.innerText?.trim() || null, // Extract rating or set to null
-        location: item
-          .querySelector('[data-testid="address"]')
-          ?.innerText?.trim(),
+            ?.innerText?.trim() || null,
+        location: item.querySelector('[data-testid="address"]')?.innerText?.trim(),
         bookingLink: item.querySelector("a")?.href,
         amenities: Array.from(
           item.querySelectorAll('[data-testid="facility-icons"] span'),
           (span) => span.innerText?.trim()
         ),
-        imageUrl: item.querySelector(
-          '[data-testid="property-card-desktop-single-image"] img'
-        )?.src,
-        description: item
-          .querySelector('[data-testid="description"]')
-          ?.innerText?.trim(),
+        imageUrl:
+          item.querySelector('[data-testid="property-card-desktop-single-image"] img')
+            ?.src ||
+          item.querySelector("img")?.getAttribute("src") ||
+          item.querySelector("img")?.getAttribute("data-src") ||
+          item.querySelector("img")?.getAttribute("srcset")?.split(" ")[0],
+        description: item.querySelector('[data-testid="description"]')?.innerText?.trim(),
       }));
     });
 
     hotels.push(...results.filter((hotel) => hotel.name));
   } catch (error) {
-    console.error(`   ❌ [ERROR] Booking.com scraping failed:`, error.message);
+    console.error(`   [ERROR] Booking.com scraping failed:`, error.message);
   } finally {
     await browser.close();
   }
@@ -101,7 +107,7 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
 }
 
 async function scrapeHotels(location, checkInDate, checkOutDate) {
-  console.log(`   🔍 [PROCESS] Starting hotel scraping process`);
+  console.log(`   [PROCESS] Starting hotel scraping process`);
 
   try {
     const bookingResults = await scrapeBookingDotCom(
@@ -109,7 +115,7 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
       checkInDate,
       checkOutDate
     ).catch((err) => {
-      console.error(`   ❌ [ERROR] Booking.com scraping error:`, err.message);
+      console.error(`   [ERROR] Booking.com scraping error:`, err.message);
       return [];
     });
 
@@ -121,13 +127,10 @@ async function scrapeHotels(location, checkInDate, checkOutDate) {
     // Sort by price
     const sortedHotels = allHotels.sort((a, b) => a.price - b.price);
 
-    console.log(`   ✅ [FINAL] Total unique hotels: ${sortedHotels.length}`);
+    console.log(`   [FINAL] Total unique hotels: ${sortedHotels.length}`);
     return sortedHotels;
   } catch (error) {
-    console.error(
-      `   ❌ [ERROR] Hotel scraping process failed:`,
-      error.message
-    );
+    console.error(`   [ERROR] Hotel scraping process failed:`, error.message);
     return [];
   }
 }

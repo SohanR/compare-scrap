@@ -4,6 +4,8 @@ const randomUseragent = require("random-useragent");
 
 puppeteer.use(StealthPlugin());
 
+const PAGE_TIMEOUT = 60000;
+
 async function setupBrowser() {
   return await puppeteer.launch({
     headless: true,
@@ -18,9 +20,32 @@ async function setupBrowser() {
   });
 }
 
+async function autoScroll(page, times = 5, delay = 1200) {
+  for (let i = 0; i < times; i++) {
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight);
+    });
+    await page.waitForTimeout(delay);
+  }
+}
+
+async function waitForFlightResults(page) {
+  const selectors = ["li.hJSA-item", "[data-resultid]", ".nrc6-price-section"];
+
+  for (let round = 0; round < 3; round++) {
+    for (const sel of selectors) {
+      const found = await page.$(sel);
+      if (found) return true;
+    }
+    await page.waitForTimeout(4000);
+  }
+
+  return false;
+}
+
 async function scrapeKayakFlights(from, to, date, attempt = 1) {
   const url = `https://booking.kayak.com/flights/${from}-${to}/${date}?sort=price_a`;
-  console.log(`   🌐 [NAV] ${url}`);
+  console.log(`   [NAV] ${url}`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -33,26 +58,22 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
   const flights = [];
 
   try {
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 90000 });
-    console.log(`   ✓ [PAGE] Content loaded successfully`);
+    await page.goto(url, { waitUntil: "networkidle2", timeout: PAGE_TIMEOUT });
+    console.log(`   [PAGE] Content loaded`);
 
-    // Scroll to trigger lazy loading
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, window.innerHeight);
-      });
-      await page.waitForTimeout(1500);
+    await autoScroll(page);
+
+    let hasResults = await waitForFlightResults(page);
+    if (!hasResults) {
+      console.log("   [RELOAD] No results detected, refreshing once");
+      await page.reload({ waitUntil: "networkidle2", timeout: PAGE_TIMEOUT });
+      await autoScroll(page, 3, 1000);
+      hasResults = await waitForFlightResults(page);
     }
 
-    // Wait for flight results container
-    await page.waitForFunction(
-      () => {
-        const items = document.querySelectorAll("li.hJSA-item");
-        return items.length > 0;
-      },
-      { timeout: 90000 }
-    );
-    console.log(`   ✓ [DATA] Flight results found on page`);
+    if (!hasResults) {
+      throw new Error("Flight results not found after waiting");
+    }
 
     // Dismiss popups if any
     try {
@@ -61,42 +82,35 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
       );
       for (const btn of closeBtns) {
         await btn.click().catch(() => {});
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
       }
-    } catch (err) {}
+    } catch (err) {
+      // ignore
+    }
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll("li.hJSA-item");
+      const items = document.querySelectorAll("li.hJSA-item, [data-resultid]");
 
-      return Array.from(items).map((item, idx) => {
+      return Array.from(items).map((item) => {
         try {
-          // Time
           const timeContainer = item.querySelector(".VY2U .vmXl");
-          let time = null;
-          if (timeContainer) {
-            const timeText = timeContainer.innerText?.trim() || "";
-            time = timeText || null;
-          }
+          const time = timeContainer?.innerText?.trim() || null;
 
-          // Flight name
           const flightNameElem = item.querySelector(
             ".VY2U .c_cgF.c_cgF-mod-variant-default"
           );
           const flightName = flightNameElem?.innerText?.trim() || null;
 
-          // Stops
           const stopsElem = item.querySelector(
             ".JWEO .vmXl.vmXl-mod-variant-default span"
           );
           const stops = stopsElem?.innerText?.trim() || null;
 
-          // Duration
           const durationElem = item.querySelector(
             ".xdW8 .vmXl.vmXl-mod-variant-default"
           );
           const duration = durationElem?.innerText?.trim() || null;
 
-          // Airport codes
           const airportInfos = item.querySelectorAll(".jLhY-airport-info span");
           const fromIata =
             airportInfos[0]?.innerText?.trim() ||
@@ -106,46 +120,29 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
             airportInfos[1]?.innerText?.trim() ||
             airportInfos[1]?.textContent?.trim() ||
             null;
-          const airlinePath =
-            fromIata && toIata ? `${fromIata} → ${toIata}` : null;
+          const airlinePath = fromIata && toIata ? `${fromIata} -> ${toIata}` : null;
 
-          // Airline logos
-          const airlineLogoNodes = item.querySelectorAll(
-            ".c5iUd-leg-carrier img"
-          );
-          const airlineLogos = Array.from(airlineLogoNodes).map(
-            (img) => img.src
-          );
+          const airlineLogoNodes = item.querySelectorAll(".c5iUd-leg-carrier img");
+          const airlineLogos = Array.from(airlineLogoNodes).map((img) => img.src);
 
-          // Price and booking link are in SIBLING element
           let price = null;
           let bookingLink = null;
           let provider = null;
 
           let parentContainer = item.closest(".nrc6");
-          if (!parentContainer) {
-            parentContainer = item.closest("[data-resultid]");
-          }
-          if (!parentContainer) {
-            parentContainer = item.parentElement?.parentElement?.parentElement;
-          }
+          if (!parentContainer) parentContainer = item.closest("[data-resultid]");
+          if (!parentContainer) parentContainer = item.parentElement?.parentElement;
 
           if (parentContainer) {
-            const priceSection = parentContainer.querySelector(
-              ".nrc6-price-section"
-            );
+            const priceSection = parentContainer.querySelector(".nrc6-price-section");
             if (priceSection) {
               const priceElem = priceSection.querySelector(".e2GB-price-text");
-              if (priceElem) {
-                price = priceElem.innerText?.trim() || null;
-              }
+              price = priceElem?.innerText?.trim() || null;
 
               const bookingAnchor = priceSection.querySelector(".oVHK-fclink");
-              if (bookingAnchor) {
-                bookingLink = bookingAnchor.getAttribute("href") || null;
-                if (bookingLink && bookingLink.startsWith("/")) {
-                  bookingLink = `https://www.kayak.com${bookingLink}`;
-                }
+              bookingLink = bookingAnchor?.getAttribute("href") || null;
+              if (bookingLink && bookingLink.startsWith("/")) {
+                bookingLink = `https://www.kayak.com${bookingLink}`;
               }
 
               const providerElem = priceSection.querySelector(".DOum-name");
@@ -153,13 +150,10 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
             }
           }
 
-          // Fallback: try regex extraction if direct selectors fail
           if (!price && parentContainer) {
             const allText = parentContainer.innerText;
             const priceMatch = allText.match(/\$[\d,]+/);
-            if (priceMatch) {
-              price = priceMatch[0];
-            }
+            if (priceMatch) price = priceMatch[0];
           }
 
           return {
@@ -193,14 +187,14 @@ async function scrapeKayakFlights(from, to, date, attempt = 1) {
     );
 
     flights.push(...filtered);
-    console.log(`   ✅ [FINAL] Total flights: ${flights.length}`);
+    console.log(`   [FINAL] Total flights: ${flights.length}`);
   } catch (error) {
     console.error(
-      `   ❌ [ERROR] Kayak scraping failed (Attempt ${attempt}):`,
+      `   [ERROR] Kayak scraping failed (Attempt ${attempt}):`,
       error.message
     );
     if (attempt < 3) {
-      console.log(`   🔄 [RETRY] Retrying in 5 seconds...`);
+      console.log(`   [RETRY] Retrying in 5 seconds...`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
       await browser.close();
       return scrapeKayakFlights(from, to, date, attempt + 1);
@@ -220,7 +214,7 @@ async function scrapeKayakFlightsTwoWay(
   attempt = 1
 ) {
   const url = `https://booking.kayak.com/flights/${from}-${to}/${departDate}/${returnDate}?sort=price_a`;
-  console.log(`   🌐 [NAV] ${url}`);
+  console.log(`   [NAV] ${url}`);
 
   const browser = await setupBrowser();
   const page = await browser.newPage();
@@ -233,25 +227,22 @@ async function scrapeKayakFlightsTwoWay(
   const flights = [];
 
   try {
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 90000 });
-    console.log(`   ✓ [PAGE] Content loaded successfully`);
+    await page.goto(url, { waitUntil: "networkidle2", timeout: PAGE_TIMEOUT });
+    console.log(`   [PAGE] Content loaded`);
 
-    // Scroll to trigger lazy loading
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, window.innerHeight);
-      });
-      await page.waitForTimeout(1500);
+    await autoScroll(page);
+
+    let hasResults = await waitForFlightResults(page);
+    if (!hasResults) {
+      console.log("   [RELOAD] No results detected, refreshing once");
+      await page.reload({ waitUntil: "networkidle2", timeout: PAGE_TIMEOUT });
+      await autoScroll(page, 3, 1000);
+      hasResults = await waitForFlightResults(page);
     }
 
-    // Wait for flight results
-    await page.waitForFunction(
-      () => {
-        return document.querySelectorAll("li.hJSA-item").length > 0;
-      },
-      { timeout: 90000 }
-    );
-    console.log(`   ✓ [DATA] Flight results found on page`);
+    if (!hasResults) {
+      throw new Error("Flight results not found after waiting");
+    }
 
     try {
       const closeBtns = await page.$x(
@@ -259,42 +250,35 @@ async function scrapeKayakFlightsTwoWay(
       );
       for (const btn of closeBtns) {
         await btn.click().catch(() => {});
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
       }
-    } catch (err) {}
+    } catch (err) {
+      // ignore
+    }
 
     const results = await page.evaluate(() => {
-      const items = document.querySelectorAll("li.hJSA-item");
+      const items = document.querySelectorAll("li.hJSA-item, [data-resultid]");
 
-      return Array.from(items).map((item, idx) => {
+      return Array.from(items).map((item) => {
         try {
-          // Time
           const timeContainer = item.querySelector(".VY2U .vmXl");
-          let time = null;
-          if (timeContainer) {
-            const timeText = timeContainer.innerText?.trim() || "";
-            time = timeText || null;
-          }
+          const time = timeContainer?.innerText?.trim() || null;
 
-          // Flight name
           const flightNameElem = item.querySelector(
             ".VY2U .c_cgF.c_cgF-mod-variant-default"
           );
           const flightName = flightNameElem?.innerText?.trim() || null;
 
-          // Stops
           const stopsElem = item.querySelector(
             ".JWEO .vmXl.vmXl-mod-variant-default span"
           );
           const stops = stopsElem?.innerText?.trim() || null;
 
-          // Duration
           const durationElem = item.querySelector(
             ".xdW8 .vmXl.vmXl-mod-variant-default"
           );
           const duration = durationElem?.innerText?.trim() || null;
 
-          // Airport codes
           const airportInfos = item.querySelectorAll(".jLhY-airport-info span");
           const fromIata =
             airportInfos[0]?.innerText?.trim() ||
@@ -304,46 +288,29 @@ async function scrapeKayakFlightsTwoWay(
             airportInfos[1]?.innerText?.trim() ||
             airportInfos[1]?.textContent?.trim() ||
             null;
-          const airlinePath =
-            fromIata && toIata ? `${fromIata} → ${toIata}` : null;
+          const airlinePath = fromIata && toIata ? `${fromIata} -> ${toIata}` : null;
 
-          // Airline logos
-          const airlineLogoNodes = item.querySelectorAll(
-            ".c5iUd-leg-carrier img"
-          );
-          const airlineLogos = Array.from(airlineLogoNodes).map(
-            (img) => img.src
-          );
+          const airlineLogoNodes = item.querySelectorAll(".c5iUd-leg-carrier img");
+          const airlineLogos = Array.from(airlineLogoNodes).map((img) => img.src);
 
-          // Price and booking link are in SIBLING element
           let price = null;
           let bookingLink = null;
           let provider = null;
 
           let parentContainer = item.closest(".nrc6");
-          if (!parentContainer) {
-            parentContainer = item.closest("[data-resultid]");
-          }
-          if (!parentContainer) {
-            parentContainer = item.parentElement?.parentElement?.parentElement;
-          }
+          if (!parentContainer) parentContainer = item.closest("[data-resultid]");
+          if (!parentContainer) parentContainer = item.parentElement?.parentElement;
 
           if (parentContainer) {
-            const priceSection = parentContainer.querySelector(
-              ".nrc6-price-section"
-            );
+            const priceSection = parentContainer.querySelector(".nrc6-price-section");
             if (priceSection) {
               const priceElem = priceSection.querySelector(".e2GB-price-text");
-              if (priceElem) {
-                price = priceElem.innerText?.trim() || null;
-              }
+              price = priceElem?.innerText?.trim() || null;
 
               const bookingAnchor = priceSection.querySelector(".oVHK-fclink");
-              if (bookingAnchor) {
-                bookingLink = bookingAnchor.getAttribute("href") || null;
-                if (bookingLink && bookingLink.startsWith("/")) {
-                  bookingLink = `https://www.kayak.com${bookingLink}`;
-                }
+              bookingLink = bookingAnchor?.getAttribute("href") || null;
+              if (bookingLink && bookingLink.startsWith("/")) {
+                bookingLink = `https://www.kayak.com${bookingLink}`;
               }
 
               const providerElem = priceSection.querySelector(".DOum-name");
@@ -351,13 +318,10 @@ async function scrapeKayakFlightsTwoWay(
             }
           }
 
-          // Fallback: try regex extraction if direct selectors fail
           if (!price && parentContainer) {
             const allText = parentContainer.innerText;
             const priceMatch = allText.match(/\$[\d,]+/);
-            if (priceMatch) {
-              price = priceMatch[0];
-            }
+            if (priceMatch) price = priceMatch[0];
           }
 
           return {
@@ -391,14 +355,14 @@ async function scrapeKayakFlightsTwoWay(
     );
 
     flights.push(...filtered);
-    console.log(`   ✅ [FINAL] Total flights: ${flights.length}`);
+    console.log(`   [FINAL] Total flights: ${flights.length}`);
   } catch (error) {
     console.error(
-      `   ❌ [ERROR] Kayak two-way scraping failed (Attempt ${attempt}):`,
+      `   [ERROR] Kayak two-way scraping failed (Attempt ${attempt}):`,
       error.message
     );
     if (attempt < 3) {
-      console.log(`   🔄 [RETRY] Retrying in 5 seconds...`);
+      console.log(`   [RETRY] Retrying in 5 seconds...`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
       await browser.close();
       return scrapeKayakFlightsTwoWay(
