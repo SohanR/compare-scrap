@@ -2,6 +2,15 @@ const axios = require("axios");
 const SearchHistory = require("../models/SearchHistory");
 
 const ALLOWED_LIMIT = 100;
+const WIKI_HEADERS = {
+  // Wikipedia blocks requests without an identifying User-Agent
+  "User-Agent": "travel-comparison/1.0 (https://example.com/contact)",
+  Accept: "application/json",
+};
+const wikiClient = axios.create({
+  baseURL: "https://en.wikipedia.org",
+  headers: WIKI_HEADERS,
+});
 
 const aggregateDestinations = async ({ days = null, limit = null } = {}) => {
   const match = {
@@ -37,13 +46,18 @@ const aggregateDestinations = async ({ days = null, limit = null } = {}) => {
 };
 
 const fetchCityImage = async (city) => {
-  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
-    city
-  )}`;
-  try {
-    const { data } = await axios.get(url);
+  const fetchSummary = async (title) => {
+    const { data } = await wikiClient.get(
+      `/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+    );
     if (data?.originalimage?.source) return data.originalimage.source;
     if (data?.thumbnail?.source) return data.thumbnail.source;
+    return null;
+  };
+
+  try {
+    const direct = await fetchSummary(city);
+    if (direct) return direct;
 
     // Retry with title-cased city if first attempt had no image
     const titleCased = city
@@ -51,17 +65,12 @@ const fetchCityImage = async (city) => {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
     if (titleCased !== city) {
-      const retryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
-        titleCased
-      )}`;
-      const retry = await axios.get(retryUrl);
-      if (retry.data?.originalimage?.source) return retry.data.originalimage.source;
-      if (retry.data?.thumbnail?.source) return retry.data.thumbnail.source;
+      const retry = await fetchSummary(titleCased);
+      if (retry) return retry;
     }
 
     // Fallback: search API to grab a page with a thumbnail
-    const searchUrl = `https://en.wikipedia.org/w/api.php`;
-    const searchRes = await axios.get(searchUrl, {
+    const searchRes = await wikiClient.get(`/w/api.php`, {
       params: {
         action: "query",
         format: "json",
