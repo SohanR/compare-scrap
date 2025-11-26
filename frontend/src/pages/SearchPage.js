@@ -19,6 +19,7 @@ import {
   getWikiSummary,
   createSearchHistory,
   addBookmark,
+  incrementSearchCounter,
 } from "../utils/api";
 import useAuthStore from "../store/authStore";
 
@@ -65,6 +66,8 @@ const SearchPage = () => {
   console.log("bg img", backgroundImage);
 
   const handleSearch = async (searchData) => {
+    // fire-and-forget increment; do not block UX
+    incrementSearchCounter().catch(() => {});
     setIsSearching(true);
     setLastSearchData(searchData);
     setResults({

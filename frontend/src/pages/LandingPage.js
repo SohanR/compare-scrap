@@ -21,12 +21,14 @@ import ComparisonPillars from "../components/landing/ComparisonPillars";
 import HowItWorksSection from "../components/landing/HowItWorksSection";
 import BenefitsSection from "../components/landing/BenefitsSection";
 import CallToAction from "../components/landing/CallToAction";
+import { incrementVisitCounter } from "../utils/api";
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
+    incrementVisitCounter().catch(() => {});
   }, []);
 
   const howItWorksSteps = [

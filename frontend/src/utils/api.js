@@ -108,6 +108,26 @@ export const createSearchHistory = async (userId, searchData) => {
   }
 };
 
+export const incrementSearchCounter = async () => {
+  try {
+    const response = await api.post("/search-counter/increment");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to increment search counter:", error.message);
+    return null;
+  }
+};
+
+export const incrementVisitCounter = async () => {
+  try {
+    const response = await api.post("/visit-counter/increment");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to increment visit counter:", error.message);
+    return null;
+  }
+};
+
 export const getUserSearchHistory = async (userId) => {
   try {
     const response = await api.get(`/search-history/${userId}`);
