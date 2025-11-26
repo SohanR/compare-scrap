@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: "", trim: true },
     visitedPlaces: [
       {
-        code: String,
         name: String,
         year: Number,
       },

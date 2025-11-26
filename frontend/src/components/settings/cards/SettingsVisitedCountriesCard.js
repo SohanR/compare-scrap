@@ -9,7 +9,6 @@ import {
   Button,
   Paper,
   Grid,
-  Chip,
 } from "@mui/material";
 import { Add, Check, Close, Delete, Edit } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -17,15 +16,14 @@ import { toast } from "react-toastify";
 
 const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
   const [newPlace, setNewPlace] = useState({
-    code: "",
     name: "",
     year: new Date().getFullYear(),
   });
   const [editingPlaceIndex, setEditingPlaceIndex] = useState(null);
 
   const handleAddPlace = () => {
-    if (!newPlace.code || !newPlace.name) {
-      toast.error("Please fill in country code and name");
+    if (!newPlace.name) {
+      toast.error("Please fill in country name");
       return;
     }
     if (editingPlaceIndex !== null) {
@@ -38,7 +36,7 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
       setVisitedPlaces([...visitedPlaces, newPlace]);
       toast.success("Country added");
     }
-    setNewPlace({ code: "", name: "", year: new Date().getFullYear() });
+    setNewPlace({ name: "", year: new Date().getFullYear() });
   };
 
   const handleEditPlace = (index) => {
@@ -50,7 +48,7 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
     setVisitedPlaces(visitedPlaces.filter((_, i) => i !== index));
     if (editingPlaceIndex === index) {
       setEditingPlaceIndex(null);
-      setNewPlace({ code: "", name: "", year: new Date().getFullYear() });
+      setNewPlace({ name: "", year: new Date().getFullYear() });
     }
   };
 
@@ -75,7 +73,6 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
           </Typography>
         </Box>
 
-        {/* Visited Places List */}
         {visitedPlaces.length > 0 && (
           <Box sx={{ mb: 3, display: "grid", gap: 2 }}>
             {visitedPlaces.map((place, idx) => (
@@ -101,7 +98,7 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
                 >
                   <Box>
                     <Typography sx={{ fontSize: "1.5rem", mb: 0.5 }}>
-                      {place.code} {place.name}
+                      {place.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Visited in {place.year}
@@ -132,29 +129,12 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
           </Box>
         )}
 
-        {/* Add/Edit Place Form */}
         <Divider sx={{ my: 2 }} />
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
           {editingPlaceIndex !== null ? "Update Country" : "Add New Country"}
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Country Code"
-              value={newPlace.code}
-              onChange={(e) =>
-                setNewPlace({ ...newPlace, code: e.target.value })
-              }
-              placeholder="🇧🇩"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
               label="Country Name"
@@ -216,7 +196,6 @@ const SettingsVisitedCountriesCard = ({ visitedPlaces, setVisitedPlaces }) => {
                   onClick={() => {
                     setEditingPlaceIndex(null);
                     setNewPlace({
-                      code: "",
                       name: "",
                       year: new Date().getFullYear(),
                     });

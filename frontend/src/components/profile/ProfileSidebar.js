@@ -144,7 +144,7 @@ const ProfileSidebar = ({ bookmarks, history, onTabChange }) => {
             visitedCountries.map((country, idx) => (
               <Chip
                 key={idx}
-                label={`${country.code} ${country.name}`}
+                label={country.name}
                 size="small"
                 variant="outlined"
                 icon={undefined}
