@@ -39,7 +39,7 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
       to
     )}&ssne=${encodeURIComponent(to)}&ssne_untouched=${encodeURIComponent(
       to
-    )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0`;
+    )}&checkin=${checkInDate}&checkout=${checkOutDate}&group_adults=2&no_rooms=1&group_children=0&selected_currency=usd`;
 
     console.log(`   🌐 [NAV] ${url}`);
 
@@ -68,6 +68,7 @@ async function scrapeBookingDotCom(to, checkInDate, checkOutDate) {
               ?.textContent?.match(/[\d,]+(\.\d+)?/g)?.[0]
               ?.replace(/,/g, "")
           ) || null, // Ensure price is null if not found
+        currency: "USD",
         rating:
           item
             .querySelector('[data-testid="review-score"] .f63b14ab7a')

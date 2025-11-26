@@ -38,6 +38,18 @@ const ResultCard = ({
   showBookmark = true,
   bookmarked = false,
 }) => {
+  const currencySymbols = {
+    USD: "$",
+    EUR: "EUR ",
+    GBP: "GBP ",
+  };
+
+  const formatPrice = (price, currency = "USD") => {
+    const symbol = currencySymbols[currency?.toUpperCase()] || "$";
+    if (typeof price === "number") return `${symbol}${price.toFixed(2)}`;
+    return price ? `${symbol}${price}` : "N/A";
+  };
+
   const getAmenityIcon = (amenity) => {
     const IconComponent = amenityIcons[amenity] || FaCoffee;
     return <IconComponent />;
@@ -145,10 +157,7 @@ const ResultCard = ({
               }}
             >
               <Typography variant="h6" color="primary" fontWeight="bold">
-                �3
-                {typeof item.price === "number"
-                  ? item.price.toFixed(2)
-                  : item.price}
+                {formatPrice(item.price, item.currency)}
               </Typography>
 
               <Button
