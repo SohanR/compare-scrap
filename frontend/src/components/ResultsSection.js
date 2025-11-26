@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
+import { Box, Typography, Tabs, Tab, CircularProgress, Alert } from "@mui/material";
 import ResultCard from "./ResultCard";
 import PlaceCard from "./PlaceCard";
 import WikiCard from "./wiki/WikiCard";
@@ -15,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import FlightCard from "./FlightCard";
+import SortControl from "./SortControl";
 
 const ResultsSection = ({
   results,
@@ -27,6 +21,12 @@ const ResultsSection = ({
 }) => {
   const [messageIndex, setMessageIndex] = useState(0);
   const [bookmarkedKeys, setBookmarkedKeys] = useState([]);
+  const [sortSelections, setSortSelections] = useState({
+    transportation: "priceAsc",
+    hotels: "priceAsc",
+    todo: "nameAsc",
+    tipsAndStories: "nameAsc",
+  });
   const messages = [
     "Please wait, we are scraping data",
     "Scraping data takes long time sometimes",
@@ -67,6 +67,40 @@ const ResultsSection = ({
     isError,
     categoryKey = null
   ) => {
+    const getPrice = (item) => {
+      if (typeof item.price === "number") return item.price;
+      if (typeof item.price === "string") {
+        const parsed = parseFloat(item.price.replace(/[^0-9.]/g, ""));
+        return isNaN(parsed) ? null : parsed;
+      }
+      return null;
+    };
+
+    const getName = (item) => item.name || item.provider || "";
+
+    const sortData = (list, category) => {
+      const sortKey = sortSelections[category];
+      const copy = [...list];
+      if (!sortKey) return copy;
+
+      if (sortKey === "priceAsc") {
+        return copy.sort((a, b) => (getPrice(a) ?? Infinity) - (getPrice(b) ?? Infinity));
+      }
+      if (sortKey === "priceDesc") {
+        return copy.sort((a, b) => (getPrice(b) ?? -Infinity) - (getPrice(a) ?? -Infinity));
+      }
+      if (sortKey === "nameAsc") {
+        return copy.sort((a, b) => getName(a).localeCompare(getName(b)));
+      }
+      if (sortKey === "nameDesc") {
+        return copy.sort((a, b) => getName(b).localeCompare(getName(a)));
+      }
+      return copy;
+    };
+
+    const sortedData =
+      categoryKey && Array.isArray(data) ? sortData(data, categoryKey) : data;
+
     if (isLoading) {
       return renderLoadingState();
     }
@@ -97,7 +131,7 @@ const ResultsSection = ({
           transition={{ duration: 0.3 }}
         >
           <Box sx={{ py: 4 }}>
-            {data.map((item, index) => {
+            {sortedData.map((item, index) => {
               const key = `${categoryKey || "n/a"}-${index}`;
               const isBookmarked = bookmarkedKeys.includes(key);
               return (
@@ -218,6 +252,29 @@ const ResultsSection = ({
     },
   ];
 
+  const sortOptionsByCategory = {
+    transportation: [
+      { value: "priceAsc", label: "Price: Low to High" },
+      { value: "priceDesc", label: "Price: High to Low" },
+      { value: "nameAsc", label: "Name: A to Z" },
+      { value: "nameDesc", label: "Name: Z to A" },
+    ],
+    hotels: [
+      { value: "priceAsc", label: "Price: Low to High" },
+      { value: "priceDesc", label: "Price: High to Low" },
+      { value: "nameAsc", label: "Name: A to Z" },
+      { value: "nameDesc", label: "Name: Z to A" },
+    ],
+    todo: [
+      { value: "nameAsc", label: "Name: A to Z" },
+      { value: "nameDesc", label: "Name: Z to A" },
+    ],
+    tipsAndStories: [
+      { value: "nameAsc", label: "Name: A to Z" },
+      { value: "nameDesc", label: "Name: Z to A" },
+    ],
+  };
+
   return (
     <Box sx={{ width: "100%", mt: 4 }}>
       <Tabs
@@ -282,6 +339,21 @@ const ResultsSection = ({
 
       {/* Content wrapper */}
       <Box>
+        {activeTab < 4 && sortOptionsByCategory[tabData[activeTab].category] && (
+          <SortControl
+            options={sortOptionsByCategory[tabData[activeTab].category]}
+            value={
+              sortSelections[tabData[activeTab].category] ||
+              sortOptionsByCategory[tabData[activeTab].category][0].value
+            }
+            onChange={(val) =>
+              setSortSelections((prev) => ({
+                ...prev,
+                [tabData[activeTab].category]: val,
+              }))
+            }
+          />
+        )}
         {/* Render content based on active tab */}
         {activeTab < 4
           ? renderContent(
