@@ -5,25 +5,32 @@ import React, { useEffect, useState } from "react";
 import CountUp from "react-countup";
 import axios from "axios";
 import { baseUrl } from "../../utils/base";
+import useAdminAuthStore from "../../store/adminAuthStore";
 import "./itemlists.scss";
 
 function ItemLists({ type }) {
   const [userCount, setUserCount] = useState(0);
   const [visitCount, setVisitCount] = useState(0);
   const [searchCount, setSearchCount] = useState(0);
+  const token = useAdminAuthStore((s) => s.token);
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const usersRes = await axios.get(`${baseUrl}/users`);
-      const visitRes = await axios.get(`${baseUrl}/visit-counter`);
-      const searchRes = await axios.get(`${baseUrl}/search-counter`);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const [usersRes, visitRes, searchRes] = await Promise.all([
+        axios.get(`${baseUrl}/users`, { headers }),
+        axios.get(`${baseUrl}/visit-counter`, { headers }),
+        axios.get(`${baseUrl}/search-counter`, { headers }),
+      ]);
 
-      setUserCount(usersRes.data.message?.length || 0);
+      setUserCount(usersRes.data?.data?.length || 0);
       setVisitCount(visitRes.data.count || 0);
       setSearchCount(searchRes.data.count || 0);
     };
-    fetchCounts();
-  }, []);
+    fetchCounts().catch((err) =>
+      console.error("Failed to load dashboard counters:", err.message)
+    );
+  }, [token]);
 
   let data;
 

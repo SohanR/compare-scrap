@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController");
 const adminAuth = require("../middleware/adminAuth");
+const visitCounterController = require("../controllers/visitCounterController");
+const searchCounterController = require("../controllers/searchCounterController");
 
 // Admin login
 router.post("/login", adminController.adminLogin);
@@ -31,5 +33,9 @@ router.get(
   adminAuth,
   adminController.getSearchHistoryItems
 );
+
+// Counters
+router.get("/visit-counter", adminAuth, visitCounterController.getCount);
+router.get("/search-counter", adminAuth, searchCounterController.getCount);
 
 module.exports = router;
